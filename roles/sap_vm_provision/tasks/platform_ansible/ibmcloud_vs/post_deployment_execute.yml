@@ -52,7 +52,7 @@
 
     # - name: SAP VM Provision - IBM Cloud VS - Update fact for IBM Cloud Load Balancer Back-end Pools to target
     #   ansible.builtin.set_fact:
-    #     ibmcloud_lbs_target_pools: "{{ ibmcloud_lbs_target_pools + [{ item.id : [( item.pools | json_query('[*].id') )] }] }}"
+    #     ibmcloud_lbs_target_pools: "{{ ibmcloud_lbs_target_pools + [{ item.id : [ (item.pools | map(attribute='id') | list) ] }] }}"
     #   loop: "{{ __sap_vm_provision_register_ibmcloud_lbs_all_info }}"
     #   loop_control:
     #     label: "{{ item.name }}"

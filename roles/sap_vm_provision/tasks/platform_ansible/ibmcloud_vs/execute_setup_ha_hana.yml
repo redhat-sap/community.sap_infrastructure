@@ -106,8 +106,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP HANA - System DB SQL
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-sysdb-sql'))[0].id }}"
+        default_pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-sysdb-sql')
+          | map(attribute='id') | first }}"
         protocol: tcp
         port: "{{ ('3' + sap_system_hana_db_instance_nr + '13') | int }}"
         idle_connection_timeout: 600 # 10 minutes
@@ -120,8 +122,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP HANA - MDC Tenant 1 SQL
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-mdc1-sql'))[0].id }}"
+        default_pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-mdc1-sql')
+          | map(attribute='id') | first }}"
         protocol: tcp
         port: "{{ ('3' + sap_system_hana_db_instance_nr + '15') | int }}"
         idle_connection_timeout: 600 # 10 minutes
@@ -134,8 +138,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP HANA - startsrv HTTP
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-http'))[0].id }}"
+        default_pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-http')
+          | map(attribute='id') | first }}"
         protocol: tcp
         port: "{{ ('5' + sap_system_hana_db_instance_nr + '13') | int }}"
         idle_connection_timeout: 600 # 10 minutes
@@ -148,8 +154,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP HANA - startsrv HTTPS
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-https'))[0].id }}"
+        default_pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-https')
+          | map(attribute='id') | first }}"
         protocol: tcp
         port: "{{ ('5' + sap_system_hana_db_instance_nr + '14') | int }}"
         idle_connection_timeout: 600 # 10 minutes
@@ -166,8 +174,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - System DB SQL - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-sysdb-sql'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-sysdb-sql')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('3' + sap_system_hana_db_instance_nr + '13') | int }}"
@@ -184,8 +194,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - System DB SQL - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-sysdb-sql'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-sysdb-sql')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('3' + sap_system_hana_db_instance_nr + '13') | int }}"
@@ -204,8 +216,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - MDC Tenant 1 SQL - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-mdc1-sql'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-mdc1-sql')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('3' + sap_system_hana_db_instance_nr + '15') | int }}"
@@ -222,8 +236,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - MDC Tenant 1 SQL - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-mdc1-sql'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-mdc1-sql')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('3' + sap_system_hana_db_instance_nr + '15') | int }}"
@@ -242,8 +258,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - startsrv HTTP - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-http'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-http')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('5' + sap_system_hana_db_instance_nr + '13') | int }}"
@@ -260,8 +278,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - startsrv HTTP - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-http'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-http')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('5' + sap_system_hana_db_instance_nr + '13') | int }}"
@@ -280,8 +300,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - startsrv HTTPS - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-https'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-https')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('5' + sap_system_hana_db_instance_nr + '14') | int }}"
@@ -298,8 +320,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP HANA - startsrv HTTPS - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-https'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_hana + '-pool-startsrv-https')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: "{{ ('5' + sap_system_hana_db_instance_nr + '14') | int }}"

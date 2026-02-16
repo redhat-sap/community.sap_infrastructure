@@ -60,8 +60,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP AnyDB - IBM Db2 Communication Port
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_anydb_id }}"
-        default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_anydb + '-pool-ibmdb2'))[0].id }}"
+        default_pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_anydb + '-pool-ibmdb2')
+          | map(attribute='id') | first }}"
         protocol: tcp
         port: 5912
         idle_connection_timeout: 600 # 10 minutes
@@ -76,8 +78,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP AnyDB - Communication Port - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_anydb_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_anydb + '-pool-ibmdb2'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_anydb + '-pool-ibmdb2')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: 5912
@@ -94,8 +98,10 @@
     - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP AnyDB - Communication Port - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_anydb_id }}"
-        pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
-          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_anydb + '-pool-ibmdb2'))[0].id }}"
+        pool: "{{ __sap_vm_provision_register_ibmcloud_lb_pools.results
+          | map(attribute='resource.pools') | flatten
+          | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_anydb + '-pool-ibmdb2')
+          | map(attribute='id') | first }}"
         target_address: "{{ (__sap_vm_provision_register_ibmcloud_vs_all_info.resource.instances
           | selectattr('name', '==', host_node))[0].primary_network_attachment[0].primary_ip[0].address }}"
         port: 5912

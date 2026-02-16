@@ -204,16 +204,11 @@
         pi_placement_group_name: "{{ sap_vm_provision_ibmcloud_placement_resource_name }}-{{ placement_item }}"
         pi_placement_group_policy: "anti-affinity"
         ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
-      loop:
-        - "{{ 'hana'
-          if sap_vm_provision_group_hana_secondary in __sap_vm_provision_host_dict_plan | json_query('*') | map(attribute='sap_host_type')
-          else '' }}"
-        - "{{ 'anydb'
-          if sap_vm_provision_group_anydb_secondary in __sap_vm_provision_host_dict_plan | json_query('*') | map(attribute='sap_host_type')
-          else '' }}"
-        - "{{ 'nwas'
-          if sap_vm_provision_group_nwas_ers in __sap_vm_provision_host_dict_plan | json_query('*') | map(attribute='sap_host_type')
-          else '' }}"
+      loop: "{{
+        ['hana' if sap_vm_provision_group_hana_secondary in (__sap_vm_provision_host_dict_plan.values() | map(attribute='sap_host_type') | list) else '',
+          'anydb' if sap_vm_provision_group_anydb_secondary in (__sap_vm_provision_host_dict_plan.values() | map(attribute='sap_host_type') | list) else '',
+          'nwas' if sap_vm_provision_group_nwas_ers in (__sap_vm_provision_host_dict_plan.values() | map(attribute='sap_host_type') | list) else '']
+          | select | list }}"
       loop_control:
         loop_var: placement_item
       register: __sap_vm_provision_register_ibmcloud_placement_group

@@ -10,8 +10,11 @@
 #     name: "{{ __sap_vm_provision_fact_ha_hostname_anydb_primary }}-vip"
 #     dest_range: "{{ sap_vm_provision_ha_vip_anydb_primary | regex_replace('/.*', '') }}"
 #     next_hop_instance:
-#       selfLink: "{{ __sap_vm_provision_register_provision_host_single_info
-#         | json_query('results[*].resources[?name==`' + host_node + '`].selfLink') | flatten | join(' ') }}"
+#       selfLink: >-
+#         {{ __sap_vm_provision_register_provision_host_single_info.results
+#           | map(attribute='resources') | flatten
+#           | selectattr('name', 'equalto', host_node)
+#           | map(attribute='selfLink') | first }}
 #     network:
 #       selfLink: "{{ __sap_vm_provision_register_gcp_vpc_info.resources[0].selfLink }}"
 #     auth_kind: "serviceaccount"
@@ -74,16 +77,24 @@
   register: __sap_vm_provision_register_gcp_lb_healthcheck_service_anydb
   no_log: "{{ __sap_vm_provision_no_log }}"
 
+# NOTE: If there are multiple hosts in same group, then this looped execution will remove existing hosts in same group.
+# All instances not in this list will be removed from the InstanceGroup and will not be deleted.
 - name: SAP VM Provision - GCP - Create Instance Group (Self-Managed/Unmanaged) Primary - for SAP AnyDB
   google.cloud.gcp_compute_instance_group:
     state: present
     project: "{{ sap_vm_provision_gcp_project }}"
     name: "{{ sap_vm_provision_ha_load_balancer_name_anydb + '-primary-instance-group' }}"
-    zone: "{{ __sap_vm_provision_register_provision_host_single_info
-      | json_query('results[*].resources[?name==`' + host_node + '`].zone') | flatten | join(' ') | basename }}"
+    zone: >-
+      {{ __sap_vm_provision_register_provision_host_single_info.results
+        | map(attribute='resources') | flatten
+        | selectattr('name', 'equalto', host_node)
+        | map(attribute='zone') | first | basename }}
     instances:
-      - { "selfLink": "{{ __sap_vm_provision_register_provision_host_single_info
-        | json_query('results[*].resources[?name==`' + host_node + '`].selfLink') | flatten | join(' ') }}" }
+      - selfLink: >-
+          {{ __sap_vm_provision_register_provision_host_single_info.results
+            | map(attribute='resources') | flatten
+            | selectattr('name', 'equalto', host_node)
+            | map(attribute='selfLink') | first }}
     # named_ports:
     #  - name: http # default, not applicable to internal passthrough NLB, only applicable to proxy NLB
     #    port: 80 # default
@@ -95,16 +106,24 @@
   register: __sap_vm_provision_register_gcp_lb_instance_group1_anydb
   no_log: "{{ __sap_vm_provision_no_log }}"
 
+# NOTE: If there are multiple hosts in same group, then this looped execution will remove existing hosts in same group.
+# All instances not in this list will be removed from the InstanceGroup and will not be deleted.
 - name: SAP VM Provision - GCP - Create Instance Group (Self-Managed/Unmanaged) Secondary (Failover) - for SAP AnyDB
   google.cloud.gcp_compute_instance_group:
     state: present
     project: "{{ sap_vm_provision_gcp_project }}"
     name: "{{ sap_vm_provision_ha_load_balancer_name_anydb + '-secondary-instance-group' }}"
-    zone: "{{ __sap_vm_provision_register_provision_host_single_info
-      | json_query('results[*].resources[?name==`' + host_node + '`].zone') | flatten | join(' ') | basename }}"
+    zone: >-
+      {{ __sap_vm_provision_register_provision_host_single_info.results
+        | map(attribute='resources') | flatten
+        | selectattr('name', 'equalto', host_node)
+        | map(attribute='zone') | first | basename }}
     instances:
-      - { "selfLink": "{{ __sap_vm_provision_register_provision_host_single_info
-        | json_query('results[*].resources[?name==`' + host_node + '`].selfLink') | flatten | join(' ') }}" }
+      - selfLink: >-
+          {{ __sap_vm_provision_register_provision_host_single_info.results
+            | map(attribute='resources') | flatten
+            | selectattr('name', 'equalto', host_node)
+            | map(attribute='selfLink') | first }}
     # named_ports:
     #  - name: http # default, not applicable to internal passthrough NLB, only applicable to proxy NLB
     #    port: 80 # default
