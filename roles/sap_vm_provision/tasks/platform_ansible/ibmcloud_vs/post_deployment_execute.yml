@@ -15,7 +15,7 @@
 # for every 100 connections send 1 connection to secondary' when both are hosts are active.
 
 
-- name: SAP VM Provision - IBM Cloud - Identify hosts
+- name: SAP VM Provision - IBM Cloud VS - Identify hosts
   ansible.builtin.include_tasks:
     file: common/identify_hosts.yml
 
@@ -33,7 +33,7 @@
 
     # Workaround for bug which populates region and ibmcloud_api_key as TF arguments for ibm_is_lbs_info Ansible Module in legacy Ansible Collection
     # ibmcloud plugin install infrastructure-service -f --quiet
-    - name: SAP VM Provision - IBM Cloud - IBM Cloud CLI execution to list Load Balancer/s info
+    - name: SAP VM Provision - IBM Cloud VS - IBM Cloud CLI execution to list Load Balancer/s info
       ansible.builtin.shell:
         cmd: |
           ibmcloud config --quiet --check-version false && \
@@ -45,12 +45,12 @@
       no_log: "{{ __sap_vm_provision_no_log }}"
       changed_when: false
 
-    - name: SAP VM Provision - IBM Cloud - Set fact for IBM Cloud Load Balancer/s info
+    - name: SAP VM Provision - IBM Cloud VS - Set fact for IBM Cloud Load Balancer/s info
       ansible.builtin.set_fact:
         __sap_vm_provision_register_ibmcloud_lbs_all_info:
           "{{ ('[' + (__sap_vm_provision_register_ibmcloud_lb_all_info_shell.stdout | split('[', 1) | last)) | trim | from_json }}"
 
-    # - name: SAP VM Provision - IBM Cloud - Update fact for IBM Cloud Load Balancer Back-end Pools to target
+    # - name: SAP VM Provision - IBM Cloud VS - Update fact for IBM Cloud Load Balancer Back-end Pools to target
     #   ansible.builtin.set_fact:
     #     ibmcloud_lbs_target_pools: "{{ ibmcloud_lbs_target_pools + [{ item.id : [( item.pools | json_query('[*].id') )] }] }}"
     #   loop: "{{ __sap_vm_provision_register_ibmcloud_lbs_all_info }}"
@@ -73,7 +73,7 @@
             | map(attribute='pools') | flatten }}
       block:
 
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - System DB SQL
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - System DB SQL
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -98,7 +98,7 @@
             - __sap_vm_provision_register_ibmcloud_lbs_hana_id is not none
             - __pool_id is not none
 
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - MDC Tenant 1 SQL
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - MDC Tenant 1 SQL
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -124,7 +124,7 @@
             - __pool_id is not none
 
 
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - startsrv HTTP
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - startsrv HTTP
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -149,7 +149,7 @@
             - __sap_vm_provision_register_ibmcloud_lbs_hana_id is not none
             - __pool_id is not none
 
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - startsrv HTTPS
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP HANA - startsrv HTTPS
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_hana_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -187,7 +187,7 @@
             | map(attribute='pools') | flatten }}
       block:
 
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP AnyDB - IBM Db2 Communication Port
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP AnyDB - IBM Db2 Communication Port
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_anydb_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -232,7 +232,7 @@
       block:
 
         # Dispatcher
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapdp<ASCS_NN> process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapdp<ASCS_NN> process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -258,7 +258,7 @@
             - __pool_id is not none
 
         # Message Server
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapms<SAPSID> process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapms<SAPSID> process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -284,7 +284,7 @@
             - __pool_id is not none
 
         # Message Server HTTP
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapms<SAPSID> HTTP process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapms<SAPSID> HTTP process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}/{{ __pool_id }}"
             name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-ms-http' }}"
@@ -310,7 +310,7 @@
             - __pool_id is not none
 
         # Enqueue Server
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapenq<SAPSID> process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapenq<SAPSID> process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -336,7 +336,7 @@
             - __pool_id is not none
 
         # Enqueue Replicator Server
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}/{{ __pool_id }}"
             name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-enqrepl' }}"
@@ -362,7 +362,7 @@
             - __pool_id is not none
 
         #  SAP Start Service (SAPControl SOAP) HTTP
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -388,7 +388,7 @@
             - __pool_id is not none
 
         # SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapctrls<ASCS_NN> process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ASCS - sapctrls<ASCS_NN> process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -415,7 +415,7 @@
 
 
         # # Dispatcher
-        # - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapdp<ERS_NN> process
+        # - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapdp<ERS_NN> process
         #   ibm.cloudcollection.ibm_is_lb_pool:
         #     id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}/{{ __pool_id }}"
         #     name: "{{ __pool_name }}"
@@ -441,7 +441,7 @@
         #     - __pool_id is not none
 
         # # Message Server
-        # - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapms<SAPSID> process
+        # - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapms<SAPSID> process
         #   ibm.cloudcollection.ibm_is_lb_pool:
         #     id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}/{{ __pool_id }}"
         #     name: "{{ __pool_name }}"
@@ -467,7 +467,7 @@
         #     - __pool_id is not none
 
         # Enqueue Replication Server
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapenqr<SAPSID> process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapenqr<SAPSID> process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -493,7 +493,7 @@
             - __pool_id is not none
 
         # SAP Start Service (SAPControl SOAP) HTTP
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapctrl<ERS_NN> HTTP process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapctrl<ERS_NN> HTTP process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -519,7 +519,7 @@
             - __pool_id is not none
 
         # SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-        - name: SAP VM Provision - IBM Cloud - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapctrls<ERS_NN> HTTPS process
+        - name: SAP VM Provision - IBM Cloud VS - Update Load Balancer Back-end Pool Health Check Port for SAP NetWeaver ERS - sapctrls<ERS_NN> HTTPS process
           ibm.cloudcollection.ibm_is_lb_pool:
             id: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}/{{ __pool_id }}"
             name: "{{ __pool_name }}"
@@ -549,7 +549,7 @@
     # This requires no_log set on each Ansible Task, and not set on the Ansible Task Block
     # This requires an Ansible Task Block containing the Ansible Tasks for calling
     # Infrastructure Platform APIs (via Ansible Modules)
-    - name: SAP VM Provision - IBM Cloud - Show errors in task outputs
+    - name: SAP VM Provision - IBM Cloud VS - Show errors in task outputs
       ansible.builtin.fail:
         msg: "{{ lookup('ansible.builtin.vars', loop_item) }}"
       loop:
@@ -582,7 +582,7 @@
         - not lookup('ansible.builtin.vars', loop_item, default='') is skipped
         - lookup('ansible.builtin.vars', loop_item, default='') is failed
 
-    - name: SAP VM Provision - IBM Cloud - Fail if provisioning failed
+    - name: SAP VM Provision - IBM Cloud VS - Fail if provisioning failed
       ansible.builtin.fail:
         msg: |
           FAIL: Provisioning has failed during one of tasks not producing registered output.

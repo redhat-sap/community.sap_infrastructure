@@ -66,7 +66,7 @@
       when: item[0].resources is not defined or item[0].resources | length == 0
 
 
-    # - name: Create Placement Policies when High Availability
+    # - name: SAP VM Provision - GCP - Create Placement Policies when High Availability
     #   no_log: "{{ __sap_vm_provision_no_log }}"
     #   register: __sap_vm_provision_register_gcp_availability_policy
     #   run_once: true
@@ -149,7 +149,7 @@
       register: __sap_vm_provision_register_provision_host_single_info
       no_log: "{{ __sap_vm_provision_no_log }}"
 
-    # - name: Gather information about GCP Router and table for the VPC Subnet
+    # - name: SAP VM Provision - GCP - Gather information about GCP Router and table for the VPC Subnet
     #   no_log: "{{ __sap_vm_provision_no_log }}"
     #   register: __sap_vm_provision_register_gcp_router_info
     #   google.cloud.gcp_compute_router_info:
@@ -161,7 +161,7 @@
     #     auth_kind: "serviceaccount"
     #     service_account_file: "{{ sap_vm_provision_gcp_credentials_json }}"
 
-    # - name: Verify IP Forwarding for GCP VMs
+    # - name: SAP VM Provision - GCP - Verify IP Forwarding for GCP VMs
     #   ansible.builtin.fail:
     #     msg: GCP CE VM does not have IP Forwarding enabled
     #   when: not __sap_vm_provision_register_provision_host_single_info.resources[0].canIpForward
@@ -232,8 +232,8 @@
   delegate_to: "{{ inventory_hostname }}"
   block:
 
-    # Required to collect the remote host's facts for further processing
-    # in the following steps
+    # Required to collect the remote host's facts for further processing in the following steps.
+    # Collected facts can be used for all conditional tasks on provisioned hosts like ansible_facts['os_family'].
     - name: SAP VM Provision - GCP - Gather host facts
       ansible.builtin.setup:
 
@@ -247,37 +247,64 @@
     # GCP OS Images are missing NetworkManager-config-server package, append NetworkManager config file to ensure DHCP is still used for GCP VM
     # Primary IP Address by default uses subnet netmask /32 CIDR
     # Reason for noqa: Command block is conditional to RHEL and we should not force changed status.
-    # TODO: Replace with native Ansible code instead of shell block.
-    - name: SAP VM Provision - GCP - Ensure network configuration is persistent  # noqa no-changed-when
-      ansible.builtin.shell:
-        cmd: |
-          if grep -q rhel /etc/os-release
-          then
-            #### Override DNS auto configured based on DHCP response
-            #### Re-generate resolv.conf (/run/NetworkManager/resolv.conf and /etc/resolv.conf)
-            # Ignore Auto DNS
-            nmcli device modify eth0 ipv4.ignore-auto-dns yes
-            nmcli connection modify Wired\ connection\ 1 ipv4.ignore-auto-dns yes
-            # Ensure set to Google Cloud Private DNS (169.254.169.254 i.e. ns-gcp-private.googledomains.com)
-            nmcli device modify eth0 ipv4.dns 169.254.169.254
-            nmcli connection modify Wired\ connection\ 1 ipv4.dns 169.254.169.254
-            echo "supersede domain-name-servers 169.254.169.254;" >> /etc/dhcp/dhclient.conf
-            # Set DNS Search domains
-            nmcli device modify eth0 ipv4.dns-search {{ sap_vm_provision_dns_root_domain }},google.internal
-            nmcli connection modify Wired\ connection\ 1 ipv4.dns-search {{ sap_vm_provision_dns_root_domain }},google.internal
-            # Set Hostname and FQDN
-            nmcli device modify eth0 ipv4.dhcp-hostname ""
-            nmcli device modify eth0 ipv4.dhcp-fqdn {{ inventory_hostname }}.{{ sap_vm_provision_dns_root_domain }}
-            nmcli connection modify Wired\ connection\ 1 ipv4.dhcp-hostname ""
-            nmcli connection modify Wired\ connection\ 1 ipv4.dhcp-fqdn {{ inventory_hostname }}.{{ sap_vm_provision_dns_root_domain }}
-            #### Reset network interface for hostname and domain to set
-            # Reload RHEL Network Manager
-            systemctl reload NetworkManager
-            # Restart the connection to enact changes
-            # This will also re-populate /etc/hosts with records for the VM Primary IP and the Google Cloud Instance Metadata Service
-            nmcli connection reload && nmcli con down Wired\ connection\ 1 && nmcli con up Wired\ connection\ 1
-          fi
-      # when: ansible_facts['os_family'] == 'RedHat' # when is evaluated on the localhost, not on the delegated host
+    - name: Block for network configuration on RHEL
+      when: ansible_facts['os_family'] == 'RedHat'
+      block:
+        - name: SAP VM Provision - GCP - Ensure permanent ipv4.ignore-auto-dns is set
+          ansible.builtin.shell:
+            cmd: |
+              nmcli device modify eth0 ipv4.ignore-auto-dns yes
+              nmcli connection modify "Wired connection 1" ipv4.ignore-auto-dns yes
+          changed_when: true
+
+        - name: SAP VM Provision - GCP - Ensure permanent ipv4.dns and dhclient supersede are set
+          ansible.builtin.shell:
+            cmd: |
+              nmcli device modify eth0 ipv4.dns 169.254.169.254
+              nmcli connection modify "Wired connection 1" ipv4.dns 169.254.169.254
+          changed_when: true
+
+        - name: SAP VM Provision - GCP - Update dhclient.conf persistency
+          ansible.builtin.lineinfile:
+            path: /etc/dhcp/dhclient.conf
+            line: "supersede domain-name-servers 169.254.169.254;"
+            state: present
+            create: true
+            owner: root
+            group: root
+            mode: '0644'
+
+        - name: SAP VM Provision - GCP - Ensure DNS search domains are set
+          ansible.builtin.shell:
+            cmd: |
+              nmcli device modify eth0 ipv4.dns-search {{ sap_vm_provision_dns_root_domain }},google.internal
+              nmcli connection modify "Wired connection 1" ipv4.dns-search {{ sap_vm_provision_dns_root_domain }},google.internal
+          changed_when: true
+
+        - name: SAP VM Provision - GCP - Set Hostname and FQDN in NetworkManager
+          ansible.builtin.shell:
+            cmd: |
+              nmcli device modify eth0 ipv4.dhcp-hostname ""
+              nmcli device modify eth0 ipv4.dhcp-fqdn {{ inventory_hostname }}.{{ sap_vm_provision_dns_root_domain }}
+              nmcli connection modify "Wired connection 1" ipv4.dhcp-hostname ""
+              nmcli connection modify "Wired connection 1" ipv4.dhcp-fqdn {{ inventory_hostname }}.{{ sap_vm_provision_dns_root_domain }}
+          changed_when: true
+
+        - name: SAP VM Provision - GCP - Reload NetworkManager
+          ansible.builtin.service:
+            name: NetworkManager
+            state: reloaded
+
+        - name: SAP VM Provision - GCP - Restart connection to enact changes
+          # We use async to prevent the playbook from hanging when the SSH connection drops
+          ansible.builtin.shell:
+            cmd: |
+              nmcli connection reload && \
+              nmcli con down "Wired connection 1" && \
+              nmcli con up "Wired connection 1"
+          async: 60
+          poll: 0
+          changed_when: true
 
 
     # # GCP OS Images are missing NetworkManager-config-server package, append NetworkManager config file to ensure DHCP is still used for GCP VM

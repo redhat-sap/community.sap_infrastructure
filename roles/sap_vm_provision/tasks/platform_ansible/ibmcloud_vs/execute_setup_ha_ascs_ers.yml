@@ -3,7 +3,7 @@
 
 # Temporary ports are set now, then updated in post_deployment.
 
-- name: SAP VM Provision - IBM Cloud - Set fact with Load Balancers for SAP ASCS/ERS
+- name: SAP VM Provision - IBM Cloud VS - Set fact with Load Balancers for SAP ASCS/ERS
   ansible.builtin.set_fact:
     __sap_vm_provision_register_ibmcloud_lbs_ascs_id: >-
       {{ __sap_vm_provision_register_ibmcloud_lbs_all_info
@@ -26,7 +26,7 @@
   block:
 
     # Dispatcher
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapdp<ASCS_NN> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapdp<ASCS_NN> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-dp' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
@@ -41,7 +41,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ascs1
 
     # Message Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapms<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapms<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-ms' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
@@ -56,7 +56,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ascs2
 
     # Message Server HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapms<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapms<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-ms-http' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
@@ -71,7 +71,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ascs3
 
     # Enqueue Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapenq<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapenq<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-enq' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
@@ -86,7 +86,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ascs4
 
     # Enqueue Replicator Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-enqrepl' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
@@ -101,7 +101,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ascs5
 
     # SAP Start Service (SAPControl SOAP) HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-sapctrl' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
@@ -116,7 +116,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ascs6
 
     # SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapctrls<ASCS_NN> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ASCS - sapctrls<ASCS_NN> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-pool-sapctrls' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
@@ -131,7 +131,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ascs7
 
     # # Dispatcher
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapdp<ERS_NN> process
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapdp<ERS_NN> process
     #   ibm.cloudcollection.ibm_is_lb_pool:
     #     name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ers-pool-dp' }}"
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
@@ -146,7 +146,7 @@
     #   register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ers1
 
     # # Message Server
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapms<SAPSID> process
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapms<SAPSID> process
     #   ibm.cloudcollection.ibm_is_lb_pool:
     #     name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ers-pool-ms' }}"
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
@@ -161,7 +161,7 @@
     #   register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ers2
 
     # Enqueue Replication Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapenqr<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapenqr<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ers-pool-enqr' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
@@ -176,7 +176,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ers3
 
     # SAP Start Service (SAPControl SOAP) HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapctrl<ERS_NN> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapctrl<ERS_NN> process
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ers-pool-sapctrl' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
@@ -191,7 +191,7 @@
       register: __sap_vm_provision_register_ibmcloud_lb_pool_nwas_ers4
 
     # SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapctrls<ERS_NN>
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool for SAP NetWeaver ERS - sapctrls<ERS_NN>
       ibm.cloudcollection.ibm_is_lb_pool:
         name: "{{ sap_vm_provision_ha_load_balancer_name_nwas + '-ers-pool-sapctrls' }}"
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
@@ -207,7 +207,7 @@
 
 
     # Identify the provisioned IBM Cloud Load Balancer Back-end Pools
-    - name: Identify IBM Cloud Load Balancer Back-end Pools
+    - name: SAP VM Provision - IBM Cloud VS - Identify IBM Cloud Load Balancer Back-end Pools
       no_log: "{{ __sap_vm_provision_no_log }}"
       register: __sap_vm_provision_register_ibmcloud_lb_pools
       ibm.cloudcollection.ibm_is_lb_pools_info:
@@ -235,7 +235,7 @@
   block:
 
     # Dispatcher
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapdp<ASCS_NN> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapdp<ASCS_NN> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -250,7 +250,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ascs1.stderr
 
     # Message Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapms<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapms<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -265,7 +265,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ascs2.stderr
 
     # Message Server HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapms<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapms<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -280,7 +280,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ascs3.stderr
 
     # Enqueue Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapenq<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapenq<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -295,7 +295,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ascs4.stderr
 
     # Enqueue Replicator Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -310,7 +310,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ascs5.stderr
 
     # SAP Start Service (SAPControl SOAP) HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -325,7 +325,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ascs6.stderr
 
     # SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapctrls<ASCS_NN>
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ASCS - sapctrls<ASCS_NN>
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -343,7 +343,7 @@
     # Append Server Members to the IBM Cloud Load Balancer Back-end Pools
 
     # Primary and Secondary for Dispatcher
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapdp<ASCS_NN> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapdp<ASCS_NN> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -361,7 +361,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs1.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs1.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapdp<ASCS_NN> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapdp<ASCS_NN> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -380,7 +380,7 @@
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs2.stderr
 
     # Primary and Secondary for Message Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -398,7 +398,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs3.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs3.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -417,7 +417,7 @@
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs4.stderr
 
     # Primary and Secondary for Message Server HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -435,7 +435,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs5.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs5.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapms<SAPSID> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -454,7 +454,7 @@
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs6.stderr
 
     # Primary and Secondary for Enqueue Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenq<SAPSID> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenq<SAPSID> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -472,7 +472,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs7.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs7.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenq<SAPSID> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenq<SAPSID> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -491,7 +491,7 @@
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs8.stderr
 
     # Primary and Secondary for Enqueue Replicator Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -509,7 +509,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs9.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs9.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapenqrepl<SAPSID> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -528,7 +528,7 @@
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs10.stderr
 
     # Primary and Secondary for SAP Start Service (SAPControl SOAP) HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -546,7 +546,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs11.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs11.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrl<ASCS_NN> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -565,7 +565,7 @@
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs12.stderr
 
     # Primary and Secondary for SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrls<ASCS_NN> - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrls<ASCS_NN> - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -583,7 +583,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs13.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ascs13.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrls<ASCS_NN> - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ASCS - sapctrls<ASCS_NN> - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ascs_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -611,7 +611,7 @@
   block:
 
     # # Dispatcher
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapdp<ERS_NN> process
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapdp<ERS_NN> process
     #   ibm.cloudcollection.ibm_is_lb_listener:
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
     #     default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -626,7 +626,7 @@
     #     - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ers1.stderr
 
     # # Message Server
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapms<SAPSID> process
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapms<SAPSID> process
     #   ibm.cloudcollection.ibm_is_lb_listener:
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
     #     default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -641,7 +641,7 @@
     #     - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ers2.stderr
 
     # Enqueue Replication Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapenqr<SAPSID> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapenqr<SAPSID> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -656,7 +656,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ers3.stderr
 
     # SAP Start Service (SAPControl SOAP) HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapctrl<ERS_NN> process
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapctrl<ERS_NN> process
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -671,7 +671,7 @@
         - not 'listener_duplicate_port' in __sap_vm_provision_register_ibmcloud_lb_frontend_listener_ers4.stderr
 
     # SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapctrls<ERS_NN>
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Front-end Listener for SAP NetWeaver ERS - sapctrls<ERS_NN>
       ibm.cloudcollection.ibm_is_lb_listener:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         default_pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -689,7 +689,7 @@
     # Append Server Members to the IBM Cloud Load Balancer Back-end Pools
 
     # # Primary and Secondary for Dispatcher
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapdp<ERS_NN> process - Member 1
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapdp<ERS_NN> process - Member 1
     #   ibm.cloudcollection.ibm_is_lb_pool_member:
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
     #     pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -707,7 +707,7 @@
     #     - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers1.rc == 0
     #     - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers1.stderr
 
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapdp<ERS_NN> process - Member 2
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapdp<ERS_NN> process - Member 2
     #   ibm.cloudcollection.ibm_is_lb_pool_member:
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
     #     pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -726,7 +726,7 @@
     #     - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers2.stderr
 
     # # Primary and Secondary for Message Server
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapms<SAPSID> process - Member 1
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapms<SAPSID> process - Member 1
     #   ibm.cloudcollection.ibm_is_lb_pool_member:
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
     #     pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -744,7 +744,7 @@
     #     - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers3.rc == 0
     #     - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers3.stderr
 
-    # - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapms<SAPSID> process - Member 2
+    # - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapms<SAPSID> process - Member 2
     #   ibm.cloudcollection.ibm_is_lb_pool_member:
     #     lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
     #     pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -763,7 +763,7 @@
     #     - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers4.stderr
 
     # Primary and Secondary for Enqueue Replication Server
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapenqr<SAPSID> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapenqr<SAPSID> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -781,7 +781,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers5.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers5.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapenqr<SAPSID> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapenqr<SAPSID> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -801,7 +801,7 @@
 
 
     # Primary and Secondary for SAP Start Service (SAPControl SOAP) HTTP
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrl<ERS_NN> process - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrl<ERS_NN> process - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -819,7 +819,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers7.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers7.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrl<ERS_NN> process - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrl<ERS_NN> process - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -839,7 +839,7 @@
 
 
     # Primary and Secondary for SAP Start Service (SAPControl SOAP) HTTPS (Secure)
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrls<ERS_NN> - Member 1
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrls<ERS_NN> - Member 1
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -857,7 +857,7 @@
         - not __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers9.rc == 0
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers9.stderr
 
-    - name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrls<ERS_NN> - Member 2
+    - name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer Back-end Pool Members for SAP NetWeaver ERS - sapctrls<ERS_NN> - Member 2
       ibm.cloudcollection.ibm_is_lb_pool_member:
         lb: "{{ __sap_vm_provision_register_ibmcloud_lbs_ers_id }}"
         pool: "{{ (__sap_vm_provision_register_ibmcloud_lb_pools.results | json_query('[*].resource.pools') | flatten
@@ -876,7 +876,7 @@
         - not 'already exists in a pool' in __sap_vm_provision_register_ibmcloud_lb_pool_members_nwas_ers10.stderr
 
 
-- name: SAP VM Provision - IBM Cloud - IBM Cloud Private DNS Record for SAP NetWeaver ASCS HA Virtual Hostname
+- name: SAP VM Provision - IBM Cloud VS - IBM Cloud Private DNS Record for SAP NetWeaver ASCS HA Virtual Hostname
   ibm.cloudcollection.ibm_dns_resource_record:
     instance_id: "{{ __sap_vm_provision_register_ibmcloud_pdns_service_instance.resource.guid }}"
     zone_id: "{{ (__sap_vm_provision_register_ibmcloud_pdns.resource.dns_zones
@@ -896,7 +896,7 @@
     - not __sap_vm_provision_register_ibmcloud_pdns_record_ha_nwas_ascs.rc == 0
     - not 'The record already exists' in __sap_vm_provision_register_ibmcloud_pdns_record_ha_nwas_ascs.stderr
 
-- name: SAP VM Provision - IBM Cloud - IBM Cloud Private DNS Record for SAP NetWeaver ERS HA Virtual Hostname
+- name: SAP VM Provision - IBM Cloud VS - IBM Cloud Private DNS Record for SAP NetWeaver ERS HA Virtual Hostname
   ibm.cloudcollection.ibm_dns_resource_record:
     instance_id: "{{ __sap_vm_provision_register_ibmcloud_pdns_service_instance.resource.guid }}"
     zone_id: "{{ (__sap_vm_provision_register_ibmcloud_pdns.resource.dns_zones
@@ -918,7 +918,7 @@
 
 
 # Reason for noqa: This is setting variables for usage in end to end playbooks.
-- name: SAP VM Provision - IBM Cloud - Set facts for all hosts - use facts from localhost - HA/DR - IBM Cloud Load Balancer - SAP NetWeaver ASCS and ERS
+- name: SAP VM Provision - IBM Cloud VS - Set facts for all hosts - use facts from localhost - HA/DR - IBM Cloud Load Balancer - SAP NetWeaver ASCS and ERS
   ansible.builtin.set_fact:  # noqa var-naming[no-role-prefix]
     sap_vm_provision_ha_vip_nwas_abap_ascs: "{{ __vip_ip_ascs }}"
     sap_vm_temp_vip_nwas_abap_ascs: "{{ __vip_ip_ascs }}"

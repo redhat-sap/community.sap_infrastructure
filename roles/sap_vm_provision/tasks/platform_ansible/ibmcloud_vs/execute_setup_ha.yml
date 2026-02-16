@@ -14,7 +14,7 @@
 # (both primary and secondary nodes showing as active), by using logic '
 # for every 100 connections send 1 connection to secondary' when both are hosts are active.
 
-- name: SAP VM Provision - IBM Cloud - Create IBM Cloud IAM Authorization Policy for IBM Cloud Load Balancer to communicate with IBM Cloud Private DNS
+- name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud IAM Authorization Policy for IBM Cloud Load Balancer to communicate with IBM Cloud Private DNS
   ibm.cloudcollection.ibm_iam_authorization_policy:
     roles: Manager
     source_resource_group_id: "{{ __sap_vm_provision_register_ibmcloud_resource_group.resource.id }}"
@@ -35,7 +35,7 @@
 # Private Network Load Balancer (Layer 4), restricts HA within single Availability Zone. Permits TCP and UDP, does not permit HTTP/S.
 # Use async with poll '0' to create all IBM Cloud Load Balancers in parallel
 
-- name: SAP VM Provision - IBM Cloud - Create IBM Cloud Load Balancer (Private ALB) for each Virtual Hostname / Virtual IP required
+- name: SAP VM Provision - IBM Cloud VS - Create IBM Cloud Load Balancer (Private ALB) for each Virtual Hostname / Virtual IP required
   ibm.cloudcollection.ibm_is_lb:
     resource_group: "{{ __sap_vm_provision_register_ibmcloud_resource_group.resource.id }}"
     name: "{{ lb_item }}"
@@ -65,7 +65,7 @@
   async: 1200 # seconds maximum execution
   poll: 0 # parallel
 
-- name: SAP VM Provision - IBM Cloud - Wait for IBM Cloud Load Balancer provisioning
+- name: SAP VM Provision - IBM Cloud VS - Wait for IBM Cloud Load Balancer provisioning
   ansible.builtin.async_status:
     jid: "{{ lb_item.ansible_job_id }}"
   retries: 40
@@ -79,7 +79,7 @@
 
 
 # # Workaround to missing Ansible Module functionality in legacy Ansible Collection
-# - name: SAP VM Provision - IBM Cloud - IBM Cloud CLI append DNS to Load Balancer
+# - name: SAP VM Provision - IBM Cloud VS - IBM Cloud CLI append DNS to Load Balancer
 #   no_log: "{{ __sap_vm_provision_no_log }}"
 #   register: __sap_vm_provision_register_ibmcloud_lb_update_dns
 #   ansible.builtin.shell:
@@ -107,14 +107,14 @@
 #     - not __sap_vm_provision_register_ibmcloud_lb_update_dns.rc == 0
 #     - not 'nothing to update the load balancer with' in __sap_vm_provision_register_ibmcloud_lb_update_dns.stderr
 
-- name: SAP VM Provision - IBM Cloud - Identify IBM Cloud Virtual Servers info
+- name: SAP VM Provision - IBM Cloud VS - Identify IBM Cloud Virtual Servers info
   ibm.cloudcollection.ibm_is_instances_info:
     vpc: "{{ __sap_vm_provision_register_ibmcloud_vpc_subnet.resource.vpc }}"
     ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
   register: __sap_vm_provision_register_ibmcloud_vs_all_info
   no_log: "{{ __sap_vm_provision_no_log }}"
 
-# - name: SAP VM Provision - IBM Cloud - Identify IBM Cloud Load Balancers info
+# - name: SAP VM Provision - IBM Cloud VS - Identify IBM Cloud Load Balancers info
 #   ibm.cloudcollection.ibm_is_lbs_info:
 #     ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
 #   register: __sap_vm_provision_register_ibmcloud_lb_all_info
@@ -122,7 +122,7 @@
 
 # Workaround for bug which populates region and ibmcloud_api_key as TF arguments for ibm_is_lbs_info Ansible Module in legacy Ansible Collection
 # ibmcloud plugin install infrastructure-service -f --quiet
-- name: SAP VM Provision - IBM Cloud - IBM Cloud CLI execution to list Load Balancer/s info
+- name: SAP VM Provision - IBM Cloud VS - IBM Cloud CLI execution to list Load Balancer/s info
   ansible.builtin.shell:
     cmd: |
       ibmcloud config --quiet --check-version false && \
@@ -134,13 +134,13 @@
   no_log: "{{ __sap_vm_provision_no_log }}"
   changed_when: false
 
-- name: SAP VM Provision - IBM Cloud - Set fact for IBM Cloud Load Balancer/s info
+- name: SAP VM Provision - IBM Cloud VS - Set fact for IBM Cloud Load Balancer/s info
   ansible.builtin.set_fact:
     __sap_vm_provision_register_ibmcloud_lbs_all_info:
       "{{ ('[' + (__sap_vm_provision_register_ibmcloud_lb_all_info_shell.stdout | split('[', 1) | last)) | trim | from_json }}"
 
 # Required because CLI executed with API Key
-- name: SAP VM Provision - IBM Cloud - Set fact for Ansible Tasks debug with redaction
+- name: SAP VM Provision - IBM Cloud VS - Set fact for Ansible Tasks debug with redaction
   ansible.builtin.set_fact:
     # __sap_vm_provision_register_ibmcloud_lb_update_dns:
     #   "{{ __sap_vm_provision_register_ibmcloud_lb_update_dns | regex_replace(sap_vm_provision_ibmcloud_api_key) }}"
@@ -149,7 +149,7 @@
 
 
 # This role does not expose variables for system numbers, so we should inform that ports will be skipped.
-- name: SAP VM Provision - IBM Cloud - Show information about skipped SAP System port numbers to listen (as applicable) on IBM Cloud Load Balancer
+- name: SAP VM Provision - IBM Cloud VS - Show information about skipped SAP System port numbers to listen (as applicable) on IBM Cloud Load Balancer
   ansible.builtin.debug:
     msg: |
       WARN: Following ports will not be configured on Load Balancer if their respective variables are not defined.
@@ -180,17 +180,17 @@
       {% endif %}
 
 
-- name: SAP VM Provision - IBM Cloud - SAP HANA
+- name: SAP VM Provision - IBM Cloud VS - SAP HANA
   ansible.builtin.include_tasks:
     file: execute_setup_ha_hana.yml
   when: __sap_vm_provision_fact_is_ha_hana
 
-- name: SAP VM Provision - IBM Cloud - SAP AnyDB
+- name: SAP VM Provision - IBM Cloud VS - SAP AnyDB
   ansible.builtin.include_tasks:
     file: execute_setup_ha_anydb.yml
   when: __sap_vm_provision_fact_is_ha_anydb
 
-- name: SAP VM Provision - IBM Cloud - SAP ASCS/ERS
+- name: SAP VM Provision - IBM Cloud VS - SAP ASCS/ERS
   ansible.builtin.include_tasks:
     file: execute_setup_ha_ascs_ers.yml
   when: __sap_vm_provision_fact_is_ha_nwas_ers

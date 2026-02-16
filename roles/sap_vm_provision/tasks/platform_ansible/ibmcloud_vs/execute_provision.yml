@@ -2,14 +2,14 @@
 ---
 
 # When SAP HANA Scale-Out is used, if host name is not in original specifications then strip suffix node number from host name
-- name: SAP VM Provision - IBM Cloud - Set host spec for SAP HANA Scale-Out
+- name: SAP VM Provision - IBM Cloud VS - Set host spec for SAP HANA Scale-Out
   ansible.builtin.set_fact:
     __sap_vm_provision_fact_scaleout_origin_hostname: "{{ inventory_hostname | regex_replace('^(.+?)\\d*$', '\\1') }}"
   when:
     - sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator is defined
     - not inventory_hostname in __sap_vm_provision_host_dict_plan.keys()
 
-- name: SAP VM Provision - IBM Cloud - Provision IBM Cloud Virtual Server instance
+- name: SAP VM Provision - IBM Cloud VS - Provision IBM Cloud Virtual Server instance
   ibm.cloudcollection.ibm_is_instance:
     state: available
     name: "{{ inventory_hostname }}"
@@ -81,7 +81,7 @@
 
 
 # Create flat list with names for each volume to be created.
-- name: SAP VM Provision - IBM Cloud - Set fact for target device map
+- name: SAP VM Provision - IBM Cloud VS - Set fact for target device map
   ansible.builtin.set_fact:
     __sap_vm_provision_fact_filesystem_volume_map: |
       {% set disks_map = [] -%}
@@ -105,7 +105,7 @@
       {%- endfor %}
       {{ disks_map }}
 
-- name: SAP VM Provision - IBM Cloud - Provision IBM Cloud Block Storage volumes for IBM Cloud VS instance filesystems
+- name: SAP VM Provision - IBM Cloud VS - Provision IBM Cloud Block Storage volumes for IBM Cloud VS instance filesystems
   ibm.cloudcollection.ibm_is_volume:
     resource_group: "{{ __sap_vm_provision_register_ibmcloud_resource_group.resource.id }}"
     zone: "{{ sap_vm_provision_ibmcloud_availability_zone }}"
@@ -124,7 +124,7 @@
   when:
     - vol_item.size > 0
 
-- name: SAP VM Provision - IBM Cloud - Attach IBM Cloud Block Storage volumes as filesystem for IBM Cloud VS instance
+- name: SAP VM Provision - IBM Cloud VS - Attach IBM Cloud Block Storage volumes as filesystem for IBM Cloud VS instance
   ibm.cloudcollection.ibm_is_instance_volume_attachment:
     name: "{{ vol_item.resource.name }}-attach"
     volume: "{{ vol_item.resource.id }}"
@@ -141,14 +141,14 @@
   no_log: "{{ __sap_vm_provision_no_log }}"
 
 
-- name: SAP VM Provision - IBM Cloud - Read IBM Cloud VS information
+- name: SAP VM Provision - IBM Cloud VS - Read IBM Cloud VS information
   ibm.cloudcollection.ibm_is_instance:
     name: "{{ __sap_vm_provision_register_provision_host_single.resource.name }}"
     ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
   register: __sap_vm_provision_register_provision_host_single_info
   no_log: "{{ __sap_vm_provision_no_log }}"
 
-- name: Add host facts
+- name: SAP VM Provision - IBM Cloud VS - Add host facts
   delegate_to: "{{ inventory_hostname }}"
   delegate_facts: true
   ansible.builtin.set_fact:
@@ -157,14 +157,14 @@
 
 
 # use default to handle different r/ds data structure
-- name: SAP VM Provision - IBM Cloud - Create fact for delegate host IP
+- name: SAP VM Provision - IBM Cloud VS - Create fact for delegate host IP
   ansible.builtin.set_fact:
     __sap_vm_provision_fact_private_ip:
       "{{ __sap_vm_provision_register_provision_host_single.resource.primary_network_attachment[0].virtual_network_interface[0].primary_ip[0].address
       | d(__sap_vm_provision_register_provision_host_single.resource.primary_network_attachment[0].primary_ip[0].address) }}"
 
 
-- name: SAP VM Provision - IBM Cloud - Copy facts to delegate host - when using Bastion SSH Proxy connection from Ansible control node to target node/s
+- name: SAP VM Provision - IBM Cloud VS - Copy facts to delegate host - when using Bastion SSH Proxy connection from Ansible control node to target node/s
   delegate_to: "{{ __sap_vm_provision_fact_private_ip }}"
   delegate_facts: true
   ansible.builtin.set_fact:
@@ -192,13 +192,13 @@
     ansible_ssh_common_args: "{{ sap_vm_provision_ssh_host_ssh_args }} {{ __sap_vm_provision_fact_ssh_args_bastion | d('') }}"
   block:
 
-    - name: SAP VM Provision - IBM Cloud - Create .ssh directory for root user
+    - name: SAP VM Provision - IBM Cloud VS - Create .ssh directory for root user
       ansible.builtin.file:
         path: /root/.ssh
         state: directory
         mode: '0744'
 
-    - name: SAP VM Provision - IBM Cloud - Create root authorized_keys file and entries
+    - name: SAP VM Provision - IBM Cloud VS - Create root authorized_keys file and entries
       ansible.builtin.copy:
         dest: /root/.ssh/authorized_keys
         mode: '0600'
@@ -207,14 +207,14 @@
 
     # We cannot obtain these facts from delegate without registering them first.
     # NOTE: Ansible 2.20 deprecation warning for ansible_facts does not seem to apply here.
-    - name: SAP VM Provision - IBM Cloud - Get OS distribution facts on delegate host
+    - name: SAP VM Provision - IBM Cloud VS - Get OS distribution facts on delegate host
       ansible.builtin.setup:
         gather_subset:
           - 'distribution_major_version'
           - 'os_family'
       register: __sap_vm_provision_register_gather_subset
 
-    - name: SAP VM Provision - IBM Cloud - Permit root login
+    - name: SAP VM Provision - IBM Cloud VS - Permit root login
       ansible.builtin.replace:
         path: "{{ __sap_vm_provision_ssh_config_path }}"
         regexp: '(^PermitRootLogin no)'
@@ -229,14 +229,14 @@
               else '/etc/ssh/sshd_config' }}
 
     # Reason for noqa: Handlers are executed at end of role, but this must be done now.
-    - name: SAP VM Provision - IBM Cloud - Reload sshd service  # noqa no-handler
+    - name: SAP VM Provision - IBM Cloud VS - Reload sshd service  # noqa no-handler
       ansible.builtin.service:
         name: sshd
         state: reloaded
       when: __sap_vm_provision_register_update_sshd_config.changed
 
 
-- name: SAP VM Provision - IBM Cloud - Combine details of provisioned hosts into one list
+- name: SAP VM Provision - IBM Cloud VS - Combine details of provisioned hosts into one list
   ansible.builtin.set_fact:
     __sap_vm_provision_fact_provisioned_hosts: "{{ __sap_vm_provision_fact_provisioned_hosts + [__merged_results] }}"
   # Append keys to provisioning result, that are not part of default return dictionary.

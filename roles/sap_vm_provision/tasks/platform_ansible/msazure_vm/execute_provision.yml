@@ -161,10 +161,9 @@
 - name: SAP VM Provision - Azure - Set fact for available storage volume device names
   ansible.builtin.set_fact:
     __sap_vm_provision_fact_available_volumes: |-
-      {% set letters = 'bcdefghijklmnopqrstuvwxyz' %}
       {% set ansible_facts_devices_used_list = __sap_vm_provision_register_gather_subset_hardware.ansible_facts.ansible_device_links.ids.keys() | list %}
       {% set volumes = [] %}
-      {%- for letter in letters -%}
+      {%- for letter in __sap_vm_provision_storage_vol_letters -%}
         {% for device in ansible_facts_devices_used_list -%}
           {% if '/dev/sd' + letter not in device -%}
             {% set dev = volumes.append('/dev/sd' + letter) %}
@@ -295,6 +294,7 @@
               (__sap_vm_provision_register_gather_subset.ansible_facts['ansible_distribution_major_version'] | int) >= 16
               else '/etc/ssh/sshd_config' }}
 
+    # Reason for noqa: Handlers are executed at end of role, but this must be done now.
     - name: SAP VM Provision - Azure - Reload sshd service  # noqa no-handler
       ansible.builtin.service:
         name: sshd

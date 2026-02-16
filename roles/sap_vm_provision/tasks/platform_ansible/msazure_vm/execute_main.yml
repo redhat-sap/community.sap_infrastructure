@@ -204,8 +204,8 @@
   delegate_to: "{{ inventory_hostname }}"
   block:
 
-    # Required to collect the remote host's facts for further processing
-    # in the following steps
+    # Required to collect the remote host's facts for further processing in the following steps.
+    # Collected facts can be used for all conditional tasks on provisioned hosts like ansible_facts['os_family'].
     - name: SAP VM Provision - Azure - Gather host facts
       ansible.builtin.setup:
 
