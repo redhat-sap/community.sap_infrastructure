@@ -806,6 +806,10 @@ sap_vm_provision_ibmpowervm_vm_host_specifications_dictionary:
 # KUBECONFIG or K8S_AUTH_KUBECONFIG
 # sap_vm_provision_kubevirt_vm_kubeconfig: /path/to/clusterconfigs/kubeconfig
 
+# Name of OS user on 'sap_vm_provision_execution_host' used for SSH access
+# to provisioned hosts via proxy command.
+sap_vm_provision_kubevirt_vm_execution_host_user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
+
 # Namespace where the VM should be created in
 sap_vm_provision_kubevirt_vm_target_namespace: sap
 

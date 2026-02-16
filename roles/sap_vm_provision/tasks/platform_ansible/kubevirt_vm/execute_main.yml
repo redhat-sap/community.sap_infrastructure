@@ -1,41 +1,44 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
+
 - name: Ansible Task block for looped provisioning of KubeVirt Virtual Machines
   any_errors_fatal: true
-  # Using environment, no_log is ineffective and log will show 'EXEC /bin/sh -c 'ENV_VAR=value python3 /AnsiballZ_ansible_module_name.py && sleep 0'
-  # Therefore do not use environment for secrets, use only for non-sensitive values as this will reduce Ansible Task parameters.
-  # environment:
   block:
 
-    - name: Set fact to hold loop variables from include_tasks
-      ansible.builtin.set_fact:
-        register_provisioned_host_all: []
-
-    - name: Provision hosts to KubeVirt
-      register: __sap_vm_provision_task_provision_host_all_run
+    - name: SAP VM Provision - KubeVirt - Provision hosts to KubeVirt
       ansible.builtin.include_tasks:
-        file: "{{ 'platform_' + sap_vm_provision_iac_type }}/{{ sap_vm_provision_iac_platform }}/execute_provision.yml"
+        file: "{{ __sap_vm_provision_task_file }}/execute_provision.yml"
 
-    - name: Add hosts provisioned to the Ansible Inventory
-      register: __sap_vm_provision_task_provision_host_all_add
+    - name: SAP VM Provision - KubeVirt - Add hosts provisioned to the Ansible Inventory
       ansible.builtin.add_host:
         name: "{{ add_item[0].host_node }}"
         groups: "{{ add_item[0].sap_system_type + '_' if (add_item[0].sap_system_type != '') }}{{ add_item[0].sap_host_type }}"
-        ansible_host: "{{ add_item[0].provisioned_private_ip }}"
+        ansible_host: "{{ add_item[0].__sap_vm_provision_fact_private_ip }}"
         ansible_user: "{{ sap_vm_provision_kubevirt_vm_os_user }}"
-      loop: "{{ ansible_play_hosts | map('extract', hostvars, 'register_provisioned_host_all') }}"
+      loop: "{{ ansible_play_hosts | map('extract', hostvars, '__sap_vm_provision_fact_provisioned_hosts') }}"
       loop_control:
         label: "{{ add_item[0].host_node }}"
         loop_var: add_item
+      register: __sap_vm_provision_register_provision_host_all_add
 
-# Cannot override any variables from extravars input, see https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence
-# Ensure no default value exists for any prompted variable before execution of Ansible Playbook
 
-    - name: Set fact to hold all inventory hosts in all groups
+    - name: SAP VM Provision - KubeVirt - Set fact to hold all inventory hosts in all groups
       ansible.builtin.set_fact:
-        groups_merged_list: "{{ [ [ groups[sap_vm_provision_group_hana_primary] | default([]) ] , [ groups[sap_vm_provision_group_hana_secondary] | default([]) ] , [ groups[sap_vm_provision_group_nwas_ascs] | default([]) ] , [ groups[sap_vm_provision_group_nwas_ers] | default([]) ] , [ groups[sap_vm_provision_group_nwas_pas] | default([]) ] , [ groups[sap_vm_provision_group_nwas_aas] | default([]) ] ] | flatten | select() }}"
+        __sap_vm_provision_fact_merged_hosts_list: "{{
+            [[groups[sap_vm_provision_group_hana_primary] | d([])],
+            [groups[sap_vm_provision_group_hana_secondary] | d([])],
+            [groups[sap_vm_provision_group_anydb_primary] | d([])],
+            [groups[sap_vm_provision_group_anydb_secondary] | d([])],
+            [groups[sap_vm_provision_group_nwas_ascs] | d([])],
+            [groups[sap_vm_provision_group_nwas_ers] | d([])],
+            [groups[sap_vm_provision_group_nwas_pas] | d([])],
+            [groups[sap_vm_provision_group_nwas_aas] | d([])]] | flatten | select() }}"
 
-    - name: Set Ansible Vars
-      register: __sap_vm_provision_task_ansible_vars_set
+    - name: SAP VM Provision - KubeVirt - Identify hosts
+      ansible.builtin.include_tasks:
+        file: common/identify_hosts.yml
+
+    - name: SAP VM Provision - KubeVirt - Set Ansible Vars
       ansible.builtin.include_tasks:
         file: common/set_ansible_vars.yml
 
@@ -43,15 +46,15 @@
     # This requires no_log set on each Ansible Task, and not set on the Ansible Task Block
     # This requires an Ansible Task Block containing the Ansible Tasks for calling
     # Infrastructure Platform APIs (via Ansible Modules)
-    - name: Show errors in task outputs
+    - name: SAP VM Provision - KubeVirt - Show errors in task outputs
       ansible.builtin.fail:
         msg: "{{ lookup('ansible.builtin.vars', loop_item) }}"
       loop:
-        - __sap_vm_provision_task_provision_host_all_run
+        # Main
+        - __sap_vm_provision_register_provision_host_all_add
+        # Provision
         - __sap_vm_provision_task_provision_host_single
         - __sap_vm_provision_task_provision_host_single_info
-        - __sap_vm_provision_task_ansible_facts_host_disks_info
-        - __sap_vm_provision_task_provision_host_all_add
       loop_control:
         loop_var: loop_item
         index_var: loop_item_index
@@ -61,9 +64,14 @@
         - not lookup('ansible.builtin.vars', loop_item, default='') is skipped
         - lookup('ansible.builtin.vars', loop_item, default='') is failed
 
-    - name: Stop execution of playbook if there was an error during deployment.
+    - name: SAP VM Provision - KubeVirt - Fail if provisioning failed
       ansible.builtin.fail:
-        msg: "Stopping execution of playbook since there was an error during deployment. Review the previous steps to find out what and where the error occurred."
+        msg: |
+          FAIL: Provisioning has failed during one of tasks not producing registered output.
+          You can investigate failure in tasks above or by:
+          - Increasing verbosity
+          - Setting the variable '__sap_vm_provision_no_log' to 'false'
+
 
 - name: Ansible Task block to execute on target inventory hosts
   remote_user: "{{ sap_vm_provision_kubevirt_vm_os_user }}"
@@ -72,50 +80,46 @@
   delegate_to: "{{ inventory_hostname }}"
   vars:
     ansible_ssh_private_key_file: "{{ sap_vm_provision_ssh_host_private_key_file_path }}"
-    ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ConnectTimeout=180 -o ControlMaster=auto -o ControlPersist=3600s -o UserKnownHostsFile=/dev/null -o ForwardX11=no -o ProxyJump={{ __sap_vm_provision_kubevirt_vm_register_execution_host_user }}@{{ sap_vm_provision_execution_host }}"
-
+    ansible_ssh_common_args: >-
+      {{ sap_vm_provision_ssh_host_ssh_args }}
+      -o ProxyJump={{ sap_vm_provision_kubevirt_vm_execution_host_user }}@{{ sap_vm_provision_execution_host }}
   block:
 
-    # Required to collect the remote host's facts for further processing
-    # in the following steps
-    - name: Gather host facts
+    # Required to collect the remote host's facts for further processing in the following steps.
+    # Collected facts can be used for all conditional tasks on provisioned hosts like ansible_facts['os_family'].
+    - name: SAP VM Provision - KubeVirt - Gather host facts
       ansible.builtin.setup:
 
     # Must be set to short hostname,
     # so that command 'hostname' and 'hostname -s' return the short hostname only;
     # otherwise may cause error with SAP SWPM using name.domain.com.domain.com
-    - name: Change system hostname (must be set to short name and not FQDN, as required by SAP)
+    - name: SAP VM Provision - KubeVirt - Change system hostname (must be set to short name and not FQDN, as required by SAP)
       ansible.builtin.hostname:
         name: "{{ inventory_hostname_short }}"
 
-    - name: Set /etc/hosts
-      register: __sap_vm_provision_task_os_etc_hosts
+    - name: SAP VM Provision - KubeVirt - Set /etc/hosts
       ansible.builtin.include_tasks:
         file: common/set_etc_hosts.yml
 
-    - name: Set /etc/hosts for HA
-      register: __sap_vm_provision_task_os_etc_hosts_ha
+    - name: SAP VM Provision - KubeVirt - Set /etc/hosts for HA
       ansible.builtin.include_tasks:
         file: common/set_etc_hosts_ha.yml
       when:
-        - (groups[sap_vm_provision_group_hana_secondary] is defined and (groups[sap_vm_provision_group_hana_secondary] | length>0)) or (groups[sap_vm_provision_group_nwas_ers] is defined and (groups[sap_vm_provision_group_nwas_ers] | length>0)) or (groups[sap_vm_provision_group_anydb_secondary] is defined and (groups[sap_vm_provision_group_anydb_secondary] | length>0))
+        - __sap_vm_provision_fact_is_ha_hana or __sap_vm_provision_fact_is_ha_anydb or __sap_vm_provision_fact_is_ha_nwas_ers
 
-    - name: Set /etc/hosts for Scale-Out
-      register: __sap_vm_provision_task_os_etc_hosts_scaleout
+    - name: SAP VM Provision - KubeVirt - Set /etc/hosts for Scale-Out
       ansible.builtin.include_tasks:
         file: common/set_etc_hosts_scaleout.yml
-      when:
-        - (groups[sap_vm_provision_group_hana_primary] is defined and (groups[sap_vm_provision_group_hana_primary] | length>0)) and (sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator is defined or sap_vm_provision_calculate_sap_hana_scaleout_active_worker is defined or sap_vm_provision_calculate_sap_hana_scaleout_standby is defined)
+      when: __sap_vm_provision_fact_is_hana_scaleout
 
-    - name: Set vars for sap_storage_setup Ansible Role
-      register: __sap_vm_provision_task_ansible_vars_storage
+    - name: SAP VM Provision - KubeVirt - Set vars for sap_storage_setup Ansible Role
       ansible.builtin.include_tasks:
         file: common/set_ansible_vars_storage.yml
 
-    - name: Register Web Forward Proxy
+    - name: SAP VM Provision - KubeVirt - Register Web Forward Proxy
       ansible.builtin.include_tasks:
         file: common/register_proxy.yml
 
-    - name: Register Package Repositories
+    - name: SAP VM Provision - KubeVirt - Register Package Repositories
       ansible.builtin.include_tasks:
         file: common/register_os.yml
