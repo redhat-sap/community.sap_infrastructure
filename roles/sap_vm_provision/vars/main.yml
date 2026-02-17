@@ -10,10 +10,13 @@ __sap_vm_provision_host_image_dict_name:
   "{{ 'sap_vm_provision_' ~ sap_vm_provision_iac_platform ~ '_host_os_image_dictionary' }}"
 
 # Plan dictionary for simplified lookups.
+# Used when host specific dictionary cannot be used, e.g. when run_once is used, or when looking up facts of other hosts.
+# Example: __sap_vm_provision_host_dict_plan[host_node].disable_ip_anti_spoofing | d(false) | bool
 __sap_vm_provision_host_dict_plan:
   "{{ lookup('ansible.builtin.vars', __sap_vm_provision_host_spec_dict_name)[sap_vm_provision_host_specification_plan] }}"
 
 # Hostname specification dictionary for simplified lookups, with optional Scaleout.
+# This is helper variable to avoid repeated lookups, but it cannot be used in loops over hosts, if run_once is used.
 __sap_vm_provision_host_dict_spec:
   "{{ __sap_vm_provision_host_dict_plan[__sap_vm_provision_fact_scaleout_origin_hostname | d(inventory_hostname)] }}"
 

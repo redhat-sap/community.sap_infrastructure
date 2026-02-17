@@ -11,31 +11,33 @@
 # Lookup if variable is defined is using default 'SAP_VM_PROVISION_UNDEFINED_VARIABLE_DETECTED',
 # which is required to ensure compatibility between ansible-core versions.
 
-- name: Assert that the variable 'sap_vm_provision_iac_type' is defined and valid
-  ansible.builtin.assert:
-    that:
-      - sap_vm_provision_iac_type is defined
-      - sap_vm_provision_iac_type is string
-      - sap_vm_provision_iac_type in ['ansible', 'ansible_to_terraform']
-    fail_msg: |
-      The variable 'sap_vm_provision_iac_type' is undefined or invalid.
-      Available options: ansible, ansible_to_terraform
-
-- name: Assert that the variable 'sap_vm_provision_iac_platform' is defined and valid
-  ansible.builtin.assert:
-    that:
-      - sap_vm_provision_iac_platform is defined
-      - sap_vm_provision_iac_platform is string
-      - sap_vm_provision_iac_platform in
-        ['aws_ec2_vs', 'gcp_ce_vm', 'msazure_vm', 'ibmcloud_powervs', 'ibmcloud_vs', 'ibmpowervm_vm', 'kubevirt_vm', 'ovirt_vm', 'vmware_vm']
-    fail_msg: |
-      The variable 'sap_vm_provision_iac_platform' is undefined or invalid.
-      Available options: aws_ec2_vs, gcp_ce_vm, msazure_vm, ibmcloud_powervs, ibmcloud_vs, ibmpowervm_vm, kubevirt_vm, ovirt_vm, vmware_vm
-
-
-- name: Block to validate host_specifications_dictionary
-  # no_log: true
+- name: Block for variables that are run once
+  run_once: true
   block:
+
+    - name: Assert that the variable 'sap_vm_provision_iac_type' is defined and valid
+      ansible.builtin.assert:
+        that:
+          - sap_vm_provision_iac_type is defined
+          - sap_vm_provision_iac_type is string
+          - sap_vm_provision_iac_type in ['ansible', 'ansible_to_terraform']
+        fail_msg: |
+          The variable 'sap_vm_provision_iac_type' is undefined or invalid.
+          Available options: ansible, ansible_to_terraform
+
+    - name: Assert that the variable 'sap_vm_provision_iac_platform' is defined and valid
+      ansible.builtin.assert:
+        that:
+          - sap_vm_provision_iac_platform is defined
+          - sap_vm_provision_iac_platform is string
+          - sap_vm_provision_iac_platform in
+            ['aws_ec2_vs', 'gcp_ce_vm', 'msazure_vm', 'ibmcloud_powervs', 'ibmcloud_vs', 'ibmpowervm_vm', 'kubevirt_vm', 'ovirt_vm', 'vmware_vm']
+        fail_msg: |
+          The variable 'sap_vm_provision_iac_platform' is undefined or invalid.
+          Available options: aws_ec2_vs, gcp_ce_vm, msazure_vm, ibmcloud_powervs, ibmcloud_vs, ibmpowervm_vm, kubevirt_vm, ovirt_vm, vmware_vm
+
+
+    # Host spec dictionary
     - name: Assert that the variable {{ __sap_vm_provision_host_spec_dict_name }} is defined and valid
       ansible.builtin.assert:
         that:
@@ -65,66 +67,80 @@
         fail_msg: |
           The value of variable 'sap_vm_provision_host_specification_plan' is not present in a dictionary {{ __sap_vm_provision_host_spec_dict_name }}.
 
+    # We will map keys for required key 'sap_host_type', to ensure it is always present.
+    - name: Assert that all hosts in the specification plan have 'sap_host_type' defined
+      ansible.builtin.assert:
+        that:
+          - __host_specification_plan.values() | selectattr('sap_host_type', 'defined') | list | length == __host_specification_plan | length
+        fail_msg: >-
+          One or more host entries in plan '{{ sap_vm_provision_host_specification_plan }}'
+          under dictionary '{{ __sap_vm_provision_host_spec_dict_name }}' are missing the mandatory 'sap_host_type' key.
+      vars:
+        __host_specification_plan: "{{ lookup('vars', __sap_vm_provision_host_spec_dict_name)[sap_vm_provision_host_specification_plan] }}"
 
+
+    # SAP HANA Scale-Out variables
+    - name: Assert that the value of variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator' is integer
+      ansible.builtin.assert:
+        that: sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator is integer
+        fail_msg: |
+          The variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator' is not a Integer.
+      when: sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator is defined
+
+    - name: Assert that the value of variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_worker' is integer
+      ansible.builtin.assert:
+        that: sap_vm_provision_calculate_sap_hana_scaleout_active_worker is integer
+        fail_msg: |
+          The variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_worker' is not a Integer.
+      when: sap_vm_provision_calculate_sap_hana_scaleout_active_worker is defined
+
+    - name: Assert that the value of variable 'sap_vm_provision_calculate_sap_hana_scaleout_standby' is integer
+      ansible.builtin.assert:
+        that:
+          - sap_vm_provision_calculate_sap_hana_scaleout_standby is integer
+          - sap_vm_provision_calculate_sap_hana_scaleout_standby in [0, 1]
+        fail_msg: |
+          The variable 'sap_vm_provision_calculate_sap_hana_scaleout_standby' is not a Integer or values other than 0 or 1.
+      when: sap_vm_provision_calculate_sap_hana_scaleout_standby is defined
+
+
+    # Validation specific to 'sap_vm_provision_iac_type'
+    - name: Include task for validation of {{ sap_vm_provision_iac_type }} variables
+      ansible.builtin.include_tasks:
+        file: "validations/platform_{{ sap_vm_provision_iac_type }}.yml"
+      when:
+        - (role_path ~ '/tasks/validations/platform_' ~ sap_vm_provision_iac_type ~ '.yml') is file
+
+
+    # Validation specific to 'sap_vm_provision_iac_platform'
+    - name: Include task for validation of {{ sap_vm_provision_iac_platform }} variables
+      ansible.builtin.include_tasks:
+        file: "validations/{{ sap_vm_provision_iac_platform }}.yml"
+      when:
+        - (role_path ~ '/tasks/validations/' ~ sap_vm_provision_iac_platform ~ '.yml') is file
+
+
+    # Validation specific to bastion
+    - name: Include task for validation of bastion variables
+      ansible.builtin.include_tasks:
+        file: "validations/bastion.yml"
+      when: sap_vm_provision_bastion_execution
+
+    # Validation specific to High Availability
+    - name: Include task for validation of High Availability variables
+      ansible.builtin.include_tasks:
+        file: "validations/high_availability.yml"
+      when:
+        - groups[sap_vm_provision_group_hana_secondary] | d([]) | length > 0
+          or groups[sap_vm_provision_group_anydb_secondary] | d([]) | length > 0
+          or groups[sap_vm_provision_group_nwas_ers] | d([]) | length > 0
+
+
+# This is already running on hosts defined in group 'sap_vm_provision_target_inventory_group'
+# so we can use inventory hostname for validation. This is not hostname of execution node.
 - name: Assert that the length of short hostname is not longer than 13 characters
   ansible.builtin.assert:
-    that: (inventory_hostname | length) <= 13
+    that: (inventory_hostname_short | length) <= 13
     fail_msg: |
-      The length of the hostname is {{ inventory_hostname | length }} but must be less or equal to 13 characters!"
+      The length of the hostname is {{ inventory_hostname_short | length }} but must be less or equal to 13 characters!"
       See SAP Note 611361 for more details.
-
-# SAP HANA Scale-Out variables
-- name: Assert that the value of variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator' is integer
-  ansible.builtin.assert:
-    that: sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator is integer
-    fail_msg: |
-      The variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator' is not a Integer.
-  when: sap_vm_provision_calculate_sap_hana_scaleout_active_coordinator is defined
-
-- name: Assert that the value of variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_worker' is integer
-  ansible.builtin.assert:
-    that: sap_vm_provision_calculate_sap_hana_scaleout_active_worker is integer
-    fail_msg: |
-      The variable 'sap_vm_provision_calculate_sap_hana_scaleout_active_worker' is not a Integer.
-  when: sap_vm_provision_calculate_sap_hana_scaleout_active_worker is defined
-
-- name: Assert that the value of variable 'sap_vm_provision_calculate_sap_hana_scaleout_standby' is integer
-  ansible.builtin.assert:
-    that:
-      - sap_vm_provision_calculate_sap_hana_scaleout_standby is integer
-      - sap_vm_provision_calculate_sap_hana_scaleout_standby in [0, 1]
-    fail_msg: |
-      The variable 'sap_vm_provision_calculate_sap_hana_scaleout_standby' is not a Integer or values other than 0 or 1.
-  when: sap_vm_provision_calculate_sap_hana_scaleout_standby is defined
-
-
-# Validation specific to 'sap_vm_provision_iac_type'
-- name: Include task for validation of {{ sap_vm_provision_iac_type }} variables
-  ansible.builtin.include_tasks:
-    file: "validations/platform_{{ sap_vm_provision_iac_type }}.yml"
-  when:
-    - (role_path ~ '/tasks/validations/platform_' ~ sap_vm_provision_iac_type ~ '.yml') is file
-
-
-# Validation specific to 'sap_vm_provision_iac_platform'
-- name: Include task for validation of {{ sap_vm_provision_iac_platform }} variables
-  ansible.builtin.include_tasks:
-    file: "validations/{{ sap_vm_provision_iac_platform }}.yml"
-  when:
-    - (role_path ~ '/tasks/validations/' ~ sap_vm_provision_iac_platform ~ '.yml') is file
-
-
-# Validation specific to bastion
-- name: Include task for validation of bastion variables
-  ansible.builtin.include_tasks:
-    file: "validations/bastion.yml"
-  when: sap_vm_provision_bastion_execution
-
-# Validation specific to High Availability
-- name: Include task for validation of High Availability variables
-  ansible.builtin.include_tasks:
-    file: "validations/high_availability.yml"
-  when:
-    - groups[sap_vm_provision_group_hana_secondary] | d([]) | length > 0
-      or groups[sap_vm_provision_group_anydb_secondary] | d([]) | length > 0
-      or groups[sap_vm_provision_group_nwas_ers] | d([]) | length > 0

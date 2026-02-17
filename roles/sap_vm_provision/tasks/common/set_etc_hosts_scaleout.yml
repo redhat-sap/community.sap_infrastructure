@@ -3,13 +3,13 @@
 
 # ansible.builtin.setup is already gathered in 'set_etc_hosts' so it is not needed again.
 
+# Reason for noqa: Splitting this line could cause unintended newline breaks in the /etc/hosts file, which would lead to misconfiguration.
+# Therefore, this line is intentionally kept long and is marked with noqa for line length.
+
 - name: SAP VM Provision - Hosts - Update /etc/hosts file for SAP HANA Scale-Out Active Coordinator
   ansible.builtin.lineinfile:
     dest: /etc/hosts
-    line: "{{ hostvars[__coordinator]['ansible_host'] }}\t{{
-          hostvars[__coordinator]['ansible_facts']['fqdn'] }}\t{{
-          hostvars[__coordinator]['inventory_hostname_short'] }}
-          # SAP HANA Scale-Out Coordinator"
+    line: "{{ hostvars[__coordinator]['ansible_host'] }}\t{{ hostvars[__coordinator]['ansible_facts']['fqdn'] }}\t{{ hostvars[__coordinator]['inventory_hostname_short'] }} # SAP HANA Scale-Out Coordinator"  # noqa yaml[line-length]
     state: present
   vars:
     __coordinator: "{{ groups[sap_vm_provision_group_hana_primary] | first }}"
@@ -18,10 +18,7 @@
 - name: SAP VM Provision - Hosts - Update /etc/hosts file for SAP HANA Scale-Out Active Workers
   ansible.builtin.lineinfile:
     dest: /etc/hosts
-    line: "{{ hostvars[host_item]['ansible_host'] }}\t{{
-          hostvars[host_item]['ansible_facts']['fqdn'] }}\t{{
-          hostvars[host_item]['inventory_hostname_short'] }}
-          # SAP HANA Scale-Out {{ __role }}"
+    line: "{{ hostvars[host_item]['ansible_host'] }}\t{{ hostvars[host_item]['ansible_facts']['fqdn'] }}\t{{ hostvars[host_item]['inventory_hostname_short'] }} # SAP HANA Scale-Out {{ __role }}"  # noqa yaml[line-length]
     state: present
   # Loop all except first one, which is assumed to be Master
   loop: "{{ groups[sap_vm_provision_group_hana_primary][1:] }}"

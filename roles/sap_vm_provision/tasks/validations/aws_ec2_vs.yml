@@ -6,16 +6,16 @@
 - name: Assert that string variables are valid for {{ sap_vm_provision_iac_platform }}
   ansible.builtin.assert:
     that:
-      - lookup('ansible.builtin.vars', item, default='__UNDEFINED_VARIABLE_DETECTED') != '__UNDEFINED_VARIABLE_DETECTED'
-      - lookup('ansible.builtin.vars', item) is string
-      - lookup('ansible.builtin.vars', item) | trim | length > 0
+      - lookup('ansible.builtin.vars', assert_item, default='__UNDEFINED_VARIABLE_DETECTED') != '__UNDEFINED_VARIABLE_DETECTED'
+      - lookup('ansible.builtin.vars', assert_item) is string
+      - lookup('ansible.builtin.vars', assert_item) | trim | length > 0
     fail_msg: |
-      {% if lookup('ansible.builtin.vars', item, default='__UNDEFINED_VARIABLE_DETECTED') == '__UNDEFINED_VARIABLE_DETECTED' %}
-        The variable '{{ item }}' is undefined.
-      {% elif lookup('ansible.builtin.vars', item) is not string %}
-        The variable '{{ item }}' is not a String.
+      {% if lookup('ansible.builtin.vars', assert_item, default='__UNDEFINED_VARIABLE_DETECTED') == '__UNDEFINED_VARIABLE_DETECTED' %}
+        The variable '{{ assert_item }}' is undefined.
+      {% elif lookup('ansible.builtin.vars', assert_item) is not string %}
+        The variable '{{ assert_item }}' is not a String.
       {% else %}
-        The variable '{{ item }}' is empty.
+        The variable '{{ assert_item }}' is empty.
       {% endif %}
   loop:
     - sap_vm_provision_aws_access_key
@@ -24,21 +24,23 @@
     - sap_vm_provision_aws_vpc_availability_zone
     - sap_vm_provision_aws_vpc_subnet_id
     - sap_vm_provision_aws_ec2_vs_host_os_image
+  loop_control:
+    loop_var: assert_item
 
 
 - name: Assert that string variables are valid for {{ sap_vm_provision_iac_platform }} using 'ansible'
   ansible.builtin.assert:
     that:
-      - lookup('ansible.builtin.vars', item, default='__UNDEFINED_VARIABLE_DETECTED') != '__UNDEFINED_VARIABLE_DETECTED'
-      - lookup('ansible.builtin.vars', item) is string
-      - lookup('ansible.builtin.vars', item) | trim | length > 0
+      - lookup('ansible.builtin.vars', assert_item, default='__UNDEFINED_VARIABLE_DETECTED') != '__UNDEFINED_VARIABLE_DETECTED'
+      - lookup('ansible.builtin.vars', assert_item) is string
+      - lookup('ansible.builtin.vars', assert_item) | trim | length > 0
     fail_msg: |
-      {% if lookup('ansible.builtin.vars', item, default='__UNDEFINED_VARIABLE_DETECTED') == '__UNDEFINED_VARIABLE_DETECTED' %}
-        The variable '{{ item }}' is undefined.
-      {% elif lookup('ansible.builtin.vars', item) is not string %}
-        The variable '{{ item }}' is not a String.
+      {% if lookup('ansible.builtin.vars', assert_item, default='__UNDEFINED_VARIABLE_DETECTED') == '__UNDEFINED_VARIABLE_DETECTED' %}
+        The variable '{{ assert_item }}' is undefined.
+      {% elif lookup('ansible.builtin.vars', assert_item) is not string %}
+        The variable '{{ assert_item }}' is not a String.
       {% else %}
-        The variable '{{ item }}' is empty.
+        The variable '{{ assert_item }}' is empty.
       {% endif %}
   loop:
     - sap_vm_provision_aws_vpc_sg_names
@@ -46,6 +48,8 @@
     # - sap_vm_provision_aws_placement_resource_name
     - sap_vm_provision_aws_ha_iam_role
     - sap_vm_provision_aws_ha_iam_instance_profile
+  loop_control:
+    loop_var: assert_item
   when:
     - sap_vm_provision_iac_type == 'ansible'
 
@@ -53,23 +57,23 @@
 - name: Assert that boolean variables are valid for {{ sap_vm_provision_iac_platform }}
   ansible.builtin.assert:
     that:
-      - lookup('ansible.builtin.vars', __sap_vm_provision_loop_bool_var, default='__UNDEFINED_VARIABLE_DETECTED') != '__UNDEFINED_VARIABLE_DETECTED'
-      - lookup('ansible.builtin.vars', __sap_vm_provision_loop_bool_var) is boolean
-      - lookup('ansible.builtin.vars', __sap_vm_provision_loop_bool_var) | trim | length > 0
+      - lookup('ansible.builtin.vars', assert_item, default='__UNDEFINED_VARIABLE_DETECTED') != '__UNDEFINED_VARIABLE_DETECTED'
+      - lookup('ansible.builtin.vars', assert_item) is boolean
+      - lookup('ansible.builtin.vars', assert_item) | trim | length > 0
     fail_msg: |
-      {% if lookup('ansible.builtin.vars', item, default='__UNDEFINED_VARIABLE_DETECTED') == '__UNDEFINED_VARIABLE_DETECTED' %}
-        The variable '{{ __sap_vm_provision_loop_bool_var }}' is undefined.
-      {% elif lookup('ansible.builtin.vars', item) is not boolean %}
-        The variable '{{ __sap_vm_provision_loop_bool_var }}' is not a Boolean.
+      {% if lookup('ansible.builtin.vars', assert_item, default='__UNDEFINED_VARIABLE_DETECTED') == '__UNDEFINED_VARIABLE_DETECTED' %}
+        The variable '{{ assert_item }}' is undefined.
+      {% elif lookup('ansible.builtin.vars', assert_item) is not boolean %}
+        The variable '{{ assert_item }}' is not a Boolean.
       {% else %}
-        The variable '{{ __sap_vm_provision_loop_bool_var }}' is empty.
+        The variable '{{ assert_item }}' is empty.
       {% endif %}
   loop:
     - sap_vm_provision_aws_vpc_subnet_create_boolean
     - sap_vm_provision_aws_placement_strategy_spread
     - sap_vm_provision_aws_dns_overwrite
-  vars:
-    __sap_vm_provision_loop_bool_var: "{{ item }}"
+  loop_control:
+    loop_var: assert_item
 
 
 - name: Block to validate host_specifications_dictionary
@@ -96,3 +100,18 @@
         fail_msg: |
           Invalid value '{{ __sap_vm_provision_os_image_value }}' provided for the variable '{{ __sap_vm_provision_os_image_name }}'.
           Available options: {{ lookup('ansible.builtin.vars', __sap_vm_provision_os_image_dictionary_name).keys() | list | join(', ') }}
+
+
+- name: Assert that all platform specific keys are defined in the specification plan for all hosts
+  ansible.builtin.assert:
+    that:
+      - __host_specification_plan.values() | selectattr(__platform_specific_key, 'defined') | list | length == __host_specification_plan | length
+    fail_msg: >-
+      One or more host entries in plan '{{ sap_vm_provision_host_specification_plan }}'
+      under dictionary '{{ __sap_vm_provision_host_spec_dict_name }}' are missing the mandatory '{{ __platform_specific_key }}' key.
+  loop:
+    - 'virtual_machine_profile'
+  loop_control:
+    loop_var: __platform_specific_key
+  vars:
+    __host_specification_plan: "{{ lookup('vars', __sap_vm_provision_host_spec_dict_name)[sap_vm_provision_host_specification_plan] }}"

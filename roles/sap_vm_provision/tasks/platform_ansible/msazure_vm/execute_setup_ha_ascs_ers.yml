@@ -133,6 +133,7 @@
       no_log: "{{ __sap_vm_provision_no_log }}"
 
 
+    # This task runs once so we cannot use host specific '__sap_vm_provision_host_dict_spec', as it would contain only facts for the current host.
     - name: SAP VM Provision - Azure - Update network interfaces for MS Azure VM - for SAP NetWeaver HA ASCS/ERS with load balancing
       azure.azcollection.azure_rm_networkinterface:
         resource_group: "{{ sap_vm_provision_msazure_resource_group_name }}"
@@ -147,11 +148,11 @@
             # private_ip_allocation_method: "Static" # When static, must define the specific IP Address
             load_balancer_backend_address_pools:
               - "{{ __sap_vm_provision_register_msazure_lb_create_ascs_ers.state.backend_address_pools
-                | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_nwas + '-backend-pool')
+                | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_nwas + '-ascs-backend-pool')
                 | map(attribute='id') | first }}"
         enable_accelerated_networking: true
         # When disable the Anti IP Spoofing = true, then Enable IP Forwarding = true
-        enable_ip_forwarding: "{{ __sap_vm_provision_host_dict_spec.disable_ip_anti_spoofing }}"
+        enable_ip_forwarding: "{{ __sap_vm_provision_host_dict_plan[host_node].disable_ip_anti_spoofing | d(false) | bool }}"
         subscription_id: "{{ sap_vm_provision_msazure_subscription_id }}"
         tenant: "{{ sap_vm_provision_msazure_tenant_id }}"
         client_id: "{{ sap_vm_provision_msazure_app_client_id }}"
@@ -162,5 +163,5 @@
       register: __sap_vm_provision_register_msazure_update_vnic_ascs_ers
       no_log: "{{ __sap_vm_provision_no_log }}"
       when:
-        - sap_vm_provision_group_nwas_ascs in __sap_vm_provision_host_dict_spec.sap_host_type
-          or sap_vm_provision_group_nwas_ers in __sap_vm_provision_host_dict_spec.sap_host_type
+        - sap_vm_provision_group_nwas_ascs in __sap_vm_provision_host_dict_plan[host_node].sap_host_type
+          or sap_vm_provision_group_nwas_ers in __sap_vm_provision_host_dict_plan[host_node].sap_host_type

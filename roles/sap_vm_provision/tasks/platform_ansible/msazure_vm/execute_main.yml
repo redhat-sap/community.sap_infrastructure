@@ -50,7 +50,7 @@
       azure.azcollection.azure_rm_availabilityset:
         resource_group: "{{ sap_vm_provision_msazure_resource_group_name }}"
         location: "{{ sap_vm_provision_msazure_location_region }}"
-        name: "{{ sap_vm_provision_msazure_placement_resource_name }}-{{ item }}"
+        name: "{{ sap_vm_provision_msazure_placement_resource_name }}-{{ placement_item }}"
         # VM instances (HA Pairs) in the Availability Set spread across up to 3 Fault Domains (different racks)
         platform_fault_domain_count: 3
         sku: Aligned # do not use Classic/ASM

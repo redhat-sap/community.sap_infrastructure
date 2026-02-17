@@ -48,9 +48,11 @@
 
     - name: SAP VM Provision - IBM Cloud VS - Identify VPC Security Group info
       ibm.cloudcollection.ibm_is_security_group_info:
-        name: "{{ item }}"
+        name: "{{ sg_item }}"
         ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
       loop: "{{ sap_vm_provision_ibmcloud_vpc_sg_names | split(',') }}"
+      loop_control:
+        loop_var: sg_item
       register: __sap_vm_provision_register_ibmcloud_vpc_sg
       no_log: "{{ __sap_vm_provision_no_log }}"
       run_once: true

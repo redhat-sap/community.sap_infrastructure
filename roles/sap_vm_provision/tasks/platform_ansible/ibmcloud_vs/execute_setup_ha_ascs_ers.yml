@@ -211,9 +211,11 @@
       no_log: "{{ __sap_vm_provision_no_log }}"
       register: __sap_vm_provision_register_ibmcloud_lb_pools
       ibm.cloudcollection.ibm_is_lb_pools_info:
-        lb: "{{ item }}"
+        lb: "{{ lb_item }}"
         ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
       loop: "{{ __sap_vm_provision_register_ibmcloud_lbs_all_info | map(attribute='id') }}"
+      loop_control:
+        loop_var: lb_item
 
 
 # Create IBM Cloud Load Balancer Front-end Listeners (open port for Virtual IPs)
@@ -998,9 +1000,11 @@
     sap_vm_provision_ha_vip_nwas_abap_ers: "{{ __vip_ip_ers }}"
     sap_vm_temp_vip_nwas_abap_ers: "{{ __vip_ip_ers }}"
     sap_ha_pacemaker_cluster_vip_nwas_abap_ers_ip_address: "{{ __vip_ip_ers }}"
-  delegate_to: "{{ item }}"
+  delegate_to: "{{ host_item }}"
   delegate_facts: true
   loop: "{{ __sap_vm_provision_fact_merged_hosts_list }}"
+  loop_control:
+    loop_var: host_item
   vars:
     __vip_ip_ascs: "{{ (__sap_vm_provision_register_ibmcloud_lbs_all_info
       | selectattr('name', '==', sap_vm_provision_ha_load_balancer_name_nwas + '-ascs'))[0].private_ips[0].address }}"

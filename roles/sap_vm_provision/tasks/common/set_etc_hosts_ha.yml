@@ -205,6 +205,9 @@
       loop:
         - "{{ [sap_vm_provision_dynamic_inventory_nw_ascs_ip, sap_vm_provision_dynamic_inventory_nw_ascs_hostname] }}"
         - "{{ [(sap_vm_provision_ha_vip_nwas_abap_ascs | regex_replace('/.*', '')), __sap_vm_provision_fact_ha_hostname_nwas_abap_ascs] }}"
+      loop_control:
+        loop_var: hosts_item
+        label: "{{ hosts_item[1] | d('N/A') }}"
       when:
         - __sap_vm_provision_fact_is_nwas_ascs
         - sap_vm_provision_ha_vip_nwas_abap_ascs | d('') | length > 0
@@ -239,6 +242,9 @@
       loop:
         - "{{ [sap_vm_provision_dynamic_inventory_nw_ers_ip, sap_vm_provision_dynamic_inventory_nw_ers_hostname] }}"
         - "{{ [(sap_vm_provision_ha_vip_nwas_abap_ers | regex_replace('/.*', '')), __sap_vm_provision_fact_ha_hostname_nwas_abap_ers] }}"
+      loop_control:
+        loop_var: hosts_item
+        label: "{{ hosts_item[1] | d('N/A') }}"
       when:
         - __sap_vm_provision_fact_is_nwas_ers
         - sap_vm_provision_ha_vip_nwas_abap_ers | d('') | length > 0

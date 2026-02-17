@@ -18,7 +18,6 @@
           "{{ '/root/.bashrc'
             if ansible_facts['os_family'] == 'RedHat'
             else '/root/bash.bashrc' }}"
-      when: ansible_facts['os_family'] == "RedHat"
 
 
     # Linux Pacemaker uses 'https_proxy' or 'HTTPS_PROXY' for proxy, and 'no_proxy' or 'NO_PROXY' for comma-separated exclusions list.
@@ -59,6 +58,7 @@
         - __sap_vm_provision_task_ibmcloud_pi_workspace_capabilities.resource.pi_workspace_capabilities['power-edge-router']
 
     # For non-interactive login shell, append proxy env var to /root/.bashrc (proxy will not work if using /etc/bashrc or script stored in /etc/profile.d/)
+    # no_proxy formatting is very specific to ensure that it comes out as one line.
     - name: SAP VM Provision - Proxy - Append Proxy env var to non-interactive login shell config file
       ansible.builtin.blockinfile:
         path: "{{ __sap_vm_provision_fact_shell_config_file }}"
@@ -70,10 +70,12 @@
           export HTTPS_PROXY="http://{{ sap_vm_provision_proxy_web_forward_proxy_ip }}"
           #export ftp_proxy
           #export FTP_PROXY
-          export no_proxy="{{ sap_vm_provision_proxy_web_forward_exclusions | d('') }},{{ __sap_vm_provision_fact_web_forward_exclusions_dynamic }}
-            {{ __sap_vm_provision_fact_proxy_platform_exclude | d('') }}"
-          export NO_PROXY="{{ sap_vm_provision_proxy_web_forward_exclusions | d('') }},{{ __sap_vm_provision_fact_web_forward_exclusions_dynamic }}
-            {{ __sap_vm_provision_fact_proxy_platform_exclude | d('') }}"
+          export no_proxy="{{ sap_vm_provision_proxy_web_forward_exclusions | d('') }},{{
+            __sap_vm_provision_fact_web_forward_exclusions_dynamic }}{{
+            __sap_vm_provision_fact_proxy_platform_exclude | d('') }}"
+          export NO_PROXY="{{ sap_vm_provision_proxy_web_forward_exclusions | d('') }},{{
+            __sap_vm_provision_fact_web_forward_exclusions_dynamic }}{{
+            __sap_vm_provision_fact_proxy_platform_exclude | d('') }}"
 
     # dnf/yum will first use proxy var from config file, followed by environment variables of the login shell
     # When dnf/yum is set to empty string in config file, it will ignore proxy.

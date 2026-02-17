@@ -74,6 +74,7 @@
       no_log: "{{ __sap_vm_provision_no_log }}"
 
 
+    # This task runs once so we cannot use host specific '__sap_vm_provision_host_dict_spec', as it would contain only facts for the current host.
     - name: SAP VM Provision - Azure - Update network interfaces for MS Azure VM - for SAP HANA HA with load balancing
       azure.azcollection.azure_rm_networkinterface:
         resource_group: "{{ sap_vm_provision_msazure_resource_group_name }}"
@@ -92,7 +93,7 @@
                 | map(attribute='id') | first }}"
         enable_accelerated_networking: true
         # When disable the Anti IP Spoofing = true, then Enable IP Forwarding = true
-        enable_ip_forwarding: "{{ __sap_vm_provision_host_dict_spec.disable_ip_anti_spoofing }}"
+        enable_ip_forwarding: "{{ __sap_vm_provision_host_dict_plan[host_node].disable_ip_anti_spoofing | d(false) | bool }}"
         subscription_id: "{{ sap_vm_provision_msazure_subscription_id }}"
         tenant: "{{ sap_vm_provision_msazure_tenant_id }}"
         client_id: "{{ sap_vm_provision_msazure_app_client_id }}"
@@ -103,5 +104,5 @@
       register: __sap_vm_provision_register_msazure_update_vnic_hana
       no_log: "{{ __sap_vm_provision_no_log }}"
       when:
-        - sap_vm_provision_group_hana_primary in __sap_vm_provision_host_dict_spec.sap_host_type
-          or sap_vm_provision_group_hana_secondary in __sap_vm_provision_host_dict_spec.sap_host_type
+        - sap_vm_provision_group_hana_primary in __sap_vm_provision_host_dict_plan[host_node].sap_host_type
+          or sap_vm_provision_group_hana_secondary in __sap_vm_provision_host_dict_plan[host_node].sap_host_type

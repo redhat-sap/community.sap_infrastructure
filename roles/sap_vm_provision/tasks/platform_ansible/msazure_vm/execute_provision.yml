@@ -110,6 +110,8 @@
   register: __sap_vm_provision_register_ansible_facts_host_disks_info
   no_log: "{{ __sap_vm_provision_no_log }}"
 
+# Reason for noqa: Splitting this line would always trigger jinja2 formatting warning,
+# therefore this noqa is either line length or jinja2 formatting.
 - name: SAP VM Provision - Azure - Create fact for delegate host IP
   ansible.builtin.set_fact:
     __sap_vm_provision_fact_private_ip:
