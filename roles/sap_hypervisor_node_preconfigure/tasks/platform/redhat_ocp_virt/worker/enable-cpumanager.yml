@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Enable CPU Manager by patching MCP worker
+
+- name: Redhat OCP Virt - Enable CPU Manager by patching MCP worker
   kubernetes.core.k8s:
     state: patched
     definition:
@@ -10,7 +12,7 @@
         labels:
           custom-kubelet: cpumanager-enabled
 
-- name: Delete kubletconfig for cpumanager
+- name: Redhat OCP Virt - Delete kubletconfig for cpumanager
   kubernetes.core.k8s:
     state: absent
     definition:
@@ -26,8 +28,7 @@
           cpuManagerPolicy: static
           cpuManagerReconcilePeriod: 5s
 
-- name: Create kubletconfig for cpumanager worker with CPUs reserved for kubernetes
-  when: sap_hypervisor_node_preconfigure_cluster_config.worker_kubernetes_reserved_cpus is defined
+- name: Redhat OCP Virt - Create kubletconfig for cpumanager worker with CPUs reserved for kubernetes
   kubernetes.core.k8s:
     state: present
     definition:
@@ -43,9 +44,9 @@
           cpuManagerPolicy: static
           cpuManagerReconcilePeriod: 5s
           reservedSystemCPUs: "{{ sap_hypervisor_node_preconfigure_cluster_config.worker_kubernetes_reserved_cpus }}"
+  when: sap_hypervisor_node_preconfigure_cluster_config.worker_kubernetes_reserved_cpus | d('') | length > 0
 
-- name: Create kubletconfig for cpumanager worker
-  when: sap_hypervisor_node_preconfigure_cluster_config.worker_kubernetes_reserved_cpus is not defined
+- name: Redhat OCP Virt - Create kubletconfig for cpumanager worker
   kubernetes.core.k8s:
     state: present
     definition:
@@ -61,7 +62,8 @@
         kubeletConfig:
           cpuManagerPolicy: static
           cpuManagerReconcilePeriod: 5s
+  when: sap_hypervisor_node_preconfigure_cluster_config.worker_kubernetes_reserved_cpus | d('') | length == 0
 
-- name: Include wait mcp finished updating
+- name: Redhat OCP Virt - Include wait mcp finished updating
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/cluster/wait-mcp-finished-updating.yml"

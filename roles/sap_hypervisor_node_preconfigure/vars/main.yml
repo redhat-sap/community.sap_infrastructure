@@ -1,1 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
+
+# There are no shared variables for this role.
+# All platform specific variables are defined in the platform specific variable files.

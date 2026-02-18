@@ -1,12 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Include install CNV operator
+
+- name: Redhat OCP Virt - Include install CNV operator
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/operators/install-cnv-operator.yml"
 
-- name: Include install sriov operator
+- name: Redhat OCP Virt - Include install sriov operator
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/operators/install-sriov-operator.yml"
 
-- name: Include install nmstate operator
+- name: Redhat OCP Virt - Include install nmstate operator
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/operators/install-nmstate-operator.yml"

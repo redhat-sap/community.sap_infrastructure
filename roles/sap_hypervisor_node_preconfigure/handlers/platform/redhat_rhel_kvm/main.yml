@@ -1,93 +1,91 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: "Check if server is booted in BIOS or UEFI mode"
+
+- name: Redhat RHEL KVM - Check if server is booted in BIOS or UEFI mode
   ansible.builtin.stat:
     path: /sys/firmware/efi
-    get_checksum: no
+    get_checksum: false
   register: __sap_hypervisor_node_preconfigure_register_stat_sys_firmware_efi
   listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
   when:
-    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig|d(true)
+    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig
 
-- name: Debug BIOS or UEFI
-  ansible.builtin.debug:
-    var: __sap_hypervisor_node_preconfigure_register_stat_sys_firmware_efi.stat.exists
-  listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
-  when:
-    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig|d(true)
-
-- name: "Run grub-mkconfig (BIOS mode)"
-  ansible.builtin.command: grub2-mkconfig -o /boot/grub2/grub.cfg
+- name: Redhat RHEL KVM - Run grub-mkconfig (BIOS mode)
+  ansible.builtin.command:
+    cmd: grub2-mkconfig -o /boot/grub2/grub.cfg
   register: __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_bios_mode
   listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
   notify: __sap_hypervisor_node_preconfigure_reboot_handler
   when:
     - not __sap_hypervisor_node_preconfigure_register_stat_sys_firmware_efi.stat.exists
-    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig|d(true)
+    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig
   become: true
   become_user: root
 
-- name: "Debug grub-mkconfig BIOS mode"
+- name: Redhat RHEL KVM - Debug grub-mkconfig BIOS mode
   ansible.builtin.debug:
-    var: __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_bios_mode.stdout_lines,
-         __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_bios_mode.stderr_lines
+    msg: |
+      {{ __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_bios_mode.stdout_lines }}
+      {{ __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_bios_mode.stderr_lines }}
   listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
   when:
+    - __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_bios_mode is defined
     - not __sap_hypervisor_node_preconfigure_register_stat_sys_firmware_efi.stat.exists
-    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig|d(true)
+    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig
 
-- name: "Set the grub.cfg location RHEL"
-  ansible.builtin.set_fact:
-    __sap_hypervisor_node_preconfigure_uefi_boot_dir: /boot/efi/EFI/redhat/grub.cfg
-  listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
-  when:
-    - ansible_distribution == 'RedHat'
 
-- name: "Set the grub.cfg location SLES"
-  ansible.builtin.set_fact:
-    __sap_hypervisor_node_preconfigure_uefi_boot_dir: /boot/efi/EFI/BOOT/grub.cfg
-  listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
-  when:
-    - ansible_distribution == 'SLES' or ansible_distribution == 'SLES_SAP'
-
-- name: "Run grub-mkconfig (UEFI mode)"
-  ansible.builtin.command: "grub2-mkconfig -o {{ __sap_hypervisor_node_preconfigure_uefi_boot_dir }}"
+- name: Redhat RHEL KVM - Run grub-mkconfig (UEFI mode)
+  ansible.builtin.command:
+    cmd: grub2-mkconfig -o {{ __grub_cfg_path }}
   register: __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_uefi_mode
   listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
   notify: __sap_hypervisor_node_preconfigure_reboot_handler
+  vars:
+    __grub_cfg_path:
+      "{{ '/boot/efi/EFI/redhat/grub.cfg'
+        if ansible_facts['os_family'] == 'RedHat'
+        else '/boot/efi/EFI/BOOT/grub.cfg' }}"
   when:
     - __sap_hypervisor_node_preconfigure_register_stat_sys_firmware_efi.stat.exists
-    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig|d(true)
+    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig
   become: true
   become_user: root
 
-- name: "Debug grub-mkconfig UEFI"
+- name: Redhat RHEL KVM - Debug grub-mkconfig UEFI mode
   ansible.builtin.debug:
-    var: __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_uefi_mode.stdout_lines,
-         __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_uefi_mode.stderr_lines
+    msg: |
+      {{ __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_uefi_mode.stdout_lines }}
+      {{ __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_uefi_mode.stderr_lines }}
   listen: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
   when:
+    - __sap_hypervisor_node_preconfigure_register_grub2_mkconfig_uefi_mode is defined
     - __sap_hypervisor_node_preconfigure_register_stat_sys_firmware_efi.stat.exists
-    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig|d(true)
+    - sap_hypervisor_node_preconfigure_run_grub2_mkconfig
 
-- name: Reboot the managed node
+
+- name: Redhat RHEL KVM - Reboot the managed node
   ansible.builtin.reboot:
     test_command: /bin/true
   listen: __sap_hypervisor_node_preconfigure_reboot_handler
   when:
-    - sap_hypervisor_node_preconfigure_reboot_ok|d(false)
+    - sap_hypervisor_node_preconfigure_reboot_ok
 
-- name: Let the role fail if a reboot is required
+- name: Redhat RHEL KVM - Let the role fail if a reboot is required
   ansible.builtin.fail:
-    msg: Reboot is required!
+    msg: |
+      FAIL: Reboot is required but the variable 'sap_hypervisor_node_preconfigure_fail_if_reboot_required' is set to true.
+      Set this variable to false if you want to only get a warning message instead of failing the role.
   listen: __sap_hypervisor_node_preconfigure_reboot_handler
   when:
-    - sap_hypervisor_node_preconfigure_fail_if_reboot_required|d(true)
-    - not sap_hypervisor_node_preconfigure_reboot_ok|d(false)
+    - sap_hypervisor_node_preconfigure_fail_if_reboot_required
+    - not sap_hypervisor_node_preconfigure_reboot_ok
 
-- name: Show a warning message if a reboot is required
+- name: Redhat RHEL KVM - Show a warning message if a reboot is required
   ansible.builtin.debug:
-    msg: "WARN: Reboot is required!"
+    msg: |
+      WARN: Reboot is required but the variable 'sap_hypervisor_node_preconfigure_fail_if_reboot_required' is set to false.
+      Set this variable to true if you want the role to fail instead of just showing a warning.
   listen: __sap_hypervisor_node_preconfigure_reboot_handler
   when:
-    - not sap_hypervisor_node_preconfigure_fail_if_reboot_required|d(true)
-    - not sap_hypervisor_node_preconfigure_reboot_ok|d(false)
+    - not sap_hypervisor_node_preconfigure_fail_if_reboot_required
+    - not sap_hypervisor_node_preconfigure_reboot_ok

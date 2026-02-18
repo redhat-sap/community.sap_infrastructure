@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Create hook dir
+
+- name: Redhat RHEL KVM - Create hook dir
   ansible.builtin.file:
     path: /usr/libexec/vdsm/hooks/before_vm_start
     state: directory
@@ -7,7 +9,7 @@
   become: true
   become_user: root
 
-- name: Copy hook
+- name: Redhat RHEL KVM - Copy hook
   ansible.builtin.copy:
     dest: "/usr/libexec/vdsm/hooks/before_vm_start/{{ item }}"
     src: "{{ item }}"

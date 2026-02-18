@@ -1,19 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Include worker node network loop
+
+- name: Redhat OCP Virt - Include worker node network loop
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/worker/worker-node-network-loop.yml"
   loop: "{{ sap_hypervisor_node_preconfigure_cluster_config.workers }}"
   loop_control:
-    loop_var: __sap_hypervisor_node_preconfigure_register_worker
-    index_var: __sap_hypervisor_node_preconfigure_register_worker_nr
+    loop_var: __sap_hypervisor_node_preconfigure_worker_item
   when: sap_hypervisor_node_preconfigure_configure_worker_node_network
 
-- name: Include enable cpumanager
+- name: Redhat OCP Virt - Include enable cpumanager
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/worker/enable-cpumanager.yml"
   when: sap_hypervisor_node_preconfigure_enable_cpumanager
 
-- name: Include enable kargs
+- name: Redhat OCP Virt - Include enable kargs
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/worker/enable-kargs.yml"
   when: sap_hypervisor_node_preconfigure_enable_kargs
