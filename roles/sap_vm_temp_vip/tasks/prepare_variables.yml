@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+
+# Define VIP address based on target host group which is filtered in main.yml.
+# Else returns 'UNSUPPORTED', because we cannot rely on consistent result.
+# Reason: Ansible 2.16 returns type AnsibleUnsafeText while Ansible 2.20 returns type NoneType.
+- name: SAP VM VIP - Set fact for VIP address depending on target host group
+  ansible.builtin.set_fact:
+    __sap_vm_temp_vip_fact_address: >-
+      {%- if groups[sap_vm_temp_vip_group_hana_secondary] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_hana_primary] -%}
+        {{ sap_vm_temp_vip_hana_primary | d('') | regex_replace('/.*', '') }}
+      {%- elif groups[sap_vm_temp_vip_group_anydb_secondary] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_anydb_primary] -%}
+        {{ sap_vm_temp_vip_anydb_primary | d('') | regex_replace('/.*', '') }}
+      {%- elif groups[sap_vm_temp_vip_group_nwas_ers] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_nwas_ascs] -%}
+        {{ sap_vm_temp_vip_nwas_abap_ascs | d('') | regex_replace('/.*', '') }}
+      {%- elif groups[sap_vm_temp_vip_group_nwas_ers] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_nwas_ers] -%}
+        {{ sap_vm_temp_vip_nwas_abap_ers | d('') | regex_replace('/.*', '') }}
+      {%- else -%}UNSUPPORTED{%- endif -%}
+
+# We could do whole reverse acceptance logic to allow execution, but using '__sap_vm_temp_vip_fact_address' is simplest approach:
+# - 'UNSUPPORTED' - Host is not part of any supported groups, so the execution will be skipped.
+# - Empty String - Host is part of supported group, but VIP variable is not defined, so we will trigger fail.
+# - Non-empty String - Host is part of supported group and VIP variable is defined, so we can continue with VIP configuration.
+
+- name: SAP VM VIP - Show information if host is not part of supported groups
+  ansible.builtin.debug:
+    msg: |
+      INFO: The host {{ inventory_hostname }} is not part of any supported groups for temporary VIP configuration, so the execution will be skipped.
+  when: __sap_vm_temp_vip_fact_address == 'UNSUPPORTED'
+
+# Fail is included, because VIP addresses will never be empty unless this role was executed without 'sap_vm_provision' and without role variables.
+- name: SAP VM VIP - Fail if VIP address is not defined
+  ansible.builtin.fail:
+    msg: |
+      FAIL: The host {{ inventory_hostname }} is part of a supported group, but the VIP address variable is not defined or empty.
+      Please ensure that the role 'sap_vm_provision' was executed before this role to set the required variables, or that the VIP variable is defined.
+      {% if groups[sap_vm_temp_vip_group_hana_secondary] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_hana_primary] %}
+      - 'sap_vm_temp_vip_hana_primary' for configuring VIP for SAP HANA Primary group
+      {% endif %}
+      {% if groups[sap_vm_temp_vip_group_anydb_secondary] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_anydb_primary] %}
+      - 'sap_vm_temp_vip_anydb_primary' for configuring VIP for SAP AnyDB Primary group
+      {% endif %}
+      {% if groups[sap_vm_temp_vip_group_nwas_ers] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_nwas_ascs] %}
+      - 'sap_vm_temp_vip_nwas_abap_ascs' for configuring VIP for SAP Netweaver ASCS group
+      {% endif %}
+      {% if groups[sap_vm_temp_vip_group_nwas_ers] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_nwas_ers] %}
+      - 'sap_vm_temp_vip_nwas_abap_ers' for configuring VIP for SAP Netweaver ERS group
+      {% endif %}
+  when:
+    - __sap_vm_temp_vip_fact_address | trim | length == 0
+
+
+- name: SAP VM VIP - Assert that sap_vm_temp_vip_default_ip is defined as non-empty string
+  ansible.builtin.assert:
+    that:
+      - sap_vm_temp_vip_default_ip is defined
+      - sap_vm_temp_vip_default_ip is string
+      - sap_vm_temp_vip_default_ip | trim | length > 0
+    fail_msg: |
+      FAIL: The variable sap_vm_temp_vip_default_ip is required to proceed with temporary VIP configuration,
+      but it is not defined, empty or not a string.
+  when: __sap_vm_temp_vip_fact_address != 'UNSUPPORTED'
