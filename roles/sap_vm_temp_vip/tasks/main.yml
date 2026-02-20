@@ -1,44 +1,50 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-# Ansible role to setup temporary Virtual IP (VIP)
-
-- name: Collect Ansible facts for required subsets - Hardware and Network Interfaces
-  ansible.builtin.setup:
-    gather_subset:
-      - hardware
-      - interfaces
-
-- name: Assert that sap_vm_temp_vip_default_ip is defined
-  ansible.builtin.assert:
-    that: sap_vm_temp_vip_default_ip is defined and sap_vm_temp_vip_default_ip | length > 0
-    fail_msg:
-      - "Unable to get ansible fact ansible_default_ipv4.address or variable sap_vm_temp_vip_default_ip is empty!"
-      - "Ensure that sap_vm_temp_vip_default_ip is not empty."
-
 
 - name: Block to ensure that only supported groups are allowed
   when:
-    - (group_names | intersect([sap_vm_temp_vip_group_hana_primary, sap_vm_temp_vip_group_hana_secondary, sap_vm_temp_vip_group_anydb_primary,
-      sap_vm_temp_vip_group_anydb_secondary, sap_vm_temp_vip_group_nwas_ascs, sap_vm_temp_vip_group_nwas_ers])) | length > 0
+    - (group_names | intersect([
+        sap_vm_temp_vip_group_hana_primary, sap_vm_temp_vip_group_hana_secondary,
+        sap_vm_temp_vip_group_anydb_primary, sap_vm_temp_vip_group_anydb_secondary,
+        sap_vm_temp_vip_group_nwas_ascs, sap_vm_temp_vip_group_nwas_ers])) | length > 0
   block:
 
-    # - name: Identify OS Primary Network Interface
-    #   ansible.builtin.include_tasks: "identify_network_interface.yml"
+    - name: SAP VM VIP - Collect Ansible facts for required subsets - Hardware and Network Interfaces
+      ansible.builtin.setup:
+        gather_subset:
+          - hardware
+          - interfaces
 
-    - name: Attempt to obtain missing network information
-      ansible.builtin.include_tasks: "get_temp_vip_details.yml"
+    - name: SAP VM VIP - Assert and prepare variables
+      ansible.builtin.include_tasks:
+        file: prepare_variables.yml
+
+    - name: Block for hosts with defined VIP
       when:
-        - not ansible_chassis_asset_tag == 'ibmcloud'  # Moved here instead of each task inside of "set_temp_vip.yml"
+        - __sap_vm_temp_vip_fact_address != 'UNSUPPORTED'
+        - __sap_vm_temp_vip_fact_address | trim | length > 0
+      block:
+        # - name: SAP VM VIP - Identify OS Primary Network Interface
+        #   ansible.builtin.include_tasks: "identify_network_interface.yml"
 
+        - name: SAP VM VIP - Attempt to obtain missing network information
+          ansible.builtin.include_tasks:
+            file: get_temp_vip_details.yml
+          # Moved here instead of each task inside of "set_temp_vip.yml"
+          when: not ansible_facts['chassis_asset_tag'] == 'ibmcloud'
 
-    - name: Execute temporary set of a Virtual IP (VIP) prior to Linux Pacemaker ownership
-      ansible.builtin.include_tasks: "set_temp_vip.yml"
-      when:
-        - not ansible_chassis_asset_tag == 'ibmcloud'  # Moved here instead of each task inside of "set_temp_vip.yml"
+        - name: SAP VM VIP - Execute temporary set of a Virtual IP (VIP) prior to Linux Pacemaker ownership
+          ansible.builtin.include_tasks:
+            file: set_temp_vip.yml
+          # Moved here instead of each task inside of "set_temp_vip.yml"
+          when: not ansible_facts['chassis_asset_tag'] == 'ibmcloud'
 
-
-    # Required when using Load Balancers (i.e. Google Cloud, IBM Cloud, MS Azure)
-    - name: Set Health Check Probe Listener for Virtual IP when Load Balancer
-      ansible.builtin.include_tasks: "set_temp_vip_lb_listener.yml"
-      when:
-        - (ansible_product_name == 'Google Compute Engine') or (ansible_chassis_asset_tag == 'ibmcloud')
-          or (ansible_chassis_vendor == 'Microsoft Corporation' and ansible_product_name == 'Virtual Machine')
+        # Required when using Load Balancers (i.e. Google Cloud, IBM Cloud, MS Azure)
+        - name: SAP VM VIP - Set Health Check Probe Listener for Virtual IP when Load Balancer
+          ansible.builtin.include_tasks:
+            file: set_temp_vip_lb_listener.yml
+          when:
+            - ansible_facts['product_name'] == 'Google Compute Engine'
+              or ansible_facts['chassis_asset_tag'] == 'ibmcloud'
+              or (ansible_facts['chassis_vendor'] == 'Microsoft Corporation'
+                and ansible_facts['product_name'] == 'Virtual Machine')
