@@ -55,7 +55,7 @@
         __sap_vm_provision_fact_proxy_platform_exclude: ',cloud.ibm.com,networklayer.com'
       when:
         - sap_vm_provision_iac_platform == "ibmcloud_powervs"
-        - __sap_vm_provision_task_ibmcloud_pi_workspace_capabilities.resource.pi_workspace_capabilities['power-edge-router']
+        - __sap_vm_provision_register_ibmcloud_pi_workspace_capabilities.resource.pi_workspace_capabilities['power-edge-router']
 
     # For non-interactive login shell, append proxy env var to /root/.bashrc (proxy will not work if using /etc/bashrc or script stored in /etc/profile.d/)
     # no_proxy formatting is very specific to ensure that it comes out as one line.
@@ -89,5 +89,5 @@
           proxy=http://{{ sap_vm_provision_proxy_web_forward_proxy_ip }}
       when:
         - ansible_facts['os_family'] == "RedHat"
-        - not __sap_vm_provision_task_ibmcloud_pi_workspace_capabilities.resource.pi_workspace_capabilities['power-edge-router']
+        - not __sap_vm_provision_register_ibmcloud_pi_workspace_capabilities.resource.pi_workspace_capabilities['power-edge-router']
         - __sap_vm_provision_fact_proxy_platform_exclude | d('') | length == 0

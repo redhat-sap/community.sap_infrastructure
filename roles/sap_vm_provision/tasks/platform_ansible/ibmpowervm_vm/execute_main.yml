@@ -18,11 +18,11 @@
       no_log: "{{ __sap_vm_provision_no_log }}"
 
     # Method 2 for auth, obtain token and subsequently set each task with environment
-    # e.g. OS_TOKEN: "{{ __sap_vm_provision_task_ibmpowervm_openstack_session.auth_token }}"
+    # e.g. OS_TOKEN: "{{ __sap_vm_provision_register_ibmpowervm_openstack_session.auth_token }}"
     # Use if requiring direct API call or CLI commands
     # - name: SAP VM Provision - IBM PowerVM - Openstack Authentication - Method 2
     #   no_log: "{{ __sap_vm_provision_no_log }}"
-    #   register: __sap_vm_provision_task_ibmpowervm_openstack_session
+    #   register: __sap_vm_provision_register_ibmpowervm_openstack_session
     #   openstack.cloud.auth:
     #     auth:
     #       auth_url: "{{ sap_vm_provision_ibmpowervm_vc_auth_endpoint }}"
@@ -197,13 +197,11 @@
         - __sap_vm_provision_fact_is_ha_hana or __sap_vm_provision_fact_is_ha_anydb or __sap_vm_provision_fact_is_ha_nwas_ers
 
     - name: SAP VM Provision - IBM PowerVM - Set /etc/hosts for Scale-Out
-      register: __sap_vm_provision_task_os_etc_hosts_scaleout
       ansible.builtin.include_tasks:
         file: common/set_etc_hosts_scaleout.yml
       when: __sap_vm_provision_fact_is_hana_scaleout
 
     - name: SAP VM Provision - IBM PowerVM - Set vars for sap_storage_setup Ansible Role
-      register: __sap_vm_provision_task_ansible_vars_storage
       ansible.builtin.include_tasks:
         file: common/set_ansible_vars_storage.yml
 

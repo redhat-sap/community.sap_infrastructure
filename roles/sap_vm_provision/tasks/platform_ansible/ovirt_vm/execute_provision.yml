@@ -208,15 +208,15 @@
 
 
 - name: SAP VM Provision - OVirt - Collect only facts about hardware
-  register: __sap_vm_provision_task_ansible_facts_host_disks_info
-  ansible.builtin.setup:
-    gather_subset:
-      - hardware
+  delegate_to: "{{ __sap_vm_provision_fact_private_ip }}"
+  delegate_facts: false
   remote_user: root
   become: true
   become_user: root
-  delegate_to: "{{ __sap_vm_provision_fact_private_ip }}"
-  delegate_facts: false
+  ansible.builtin.setup:
+    gather_subset:
+      - hardware
+  register: __sap_vm_provision_register_gather_subset
   vars:
     ansible_ssh_private_key_file: "{{ sap_vm_provision_ssh_host_private_key_file_path }}"
     ansible_ssh_common_args: "{{ sap_vm_provision_ssh_host_ssh_args }} {{ __sap_vm_provision_fact_ssh_args_bastion | d('') }}"
@@ -225,7 +225,7 @@
 - name: SAP VM Provision - OVirt - Set fact for available storage volume device names
   ansible.builtin.set_fact:
     __sap_vm_provision_fact_available_volumes: |-
-      {% set ansible_facts_devices_used_list = __sap_vm_provision_task_ansible_facts_host_disks_info.ansible_facts.ansible_device_links.ids.keys() | list %}
+      {% set ansible_facts_devices_used_list = __sap_vm_provision_register_gather_subset.ansible_facts.ansible_device_links.ids.keys() | list %}
       {% set volumes = [] %}
       {%- for letter in __sap_vm_provision_storage_vol_letters -%}
         {% for device in ansible_facts_devices_used_list -%}

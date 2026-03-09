@@ -66,15 +66,15 @@
   register: __sap_vm_provision_register_provision_host_single
   vars:
     __placement_group: "{{ (
-      (__sap_vm_provision_task_ibmcloud_placement_group.results | selectattr('item','==','hana'))[0].resource.id
+      (__sap_vm_provision_register_ibmcloud_placement_group.results | selectattr('item','==','hana'))[0].resource.id
       if (sap_vm_provision_group_hana_primary in __sap_vm_provision_host_dict_spec.sap_host_type
         or sap_vm_provision_group_hana_secondary in __sap_vm_provision_host_dict_spec.sap_host_type)
       else
-      (__sap_vm_provision_task_ibmcloud_placement_group.results | selectattr('item','==','anydb'))[0].resource.id
+      (__sap_vm_provision_register_ibmcloud_placement_group.results | selectattr('item','==','anydb'))[0].resource.id
       if (sap_vm_provision_group_anydb_primary in __sap_vm_provision_host_dict_spec.sap_host_type
         or sap_vm_provision_group_anydb_secondary in __sap_vm_provision_host_dict_spec.sap_host_type)
       else
-      (__sap_vm_provision_task_ibmcloud_placement_group.results | selectattr('item','==','nwas'))[0].resource.id
+      (__sap_vm_provision_register_ibmcloud_placement_group.results | selectattr('item','==','nwas'))[0].resource.id
       if (sap_vm_provision_group_nwas_ascs in __sap_vm_provision_host_dict_spec.sap_host_type
         or sap_vm_provision_group_nwas_ers in __sap_vm_provision_host_dict_spec.sap_host_type)
       ) | d(omit) }}"
@@ -114,7 +114,7 @@
     capacity: "{{ vol_item.size }}"
     iops: "{{ vol_item.iops | d(omit) }}"
     ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
-  loop: "{{ storage_disks_map }}"
+  loop: "{{ __sap_vm_provision_fact_filesystem_volume_map }}"
   loop_control:
     loop_var: vol_item
     index_var: vol_item_index

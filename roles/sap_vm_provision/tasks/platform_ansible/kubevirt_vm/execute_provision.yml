@@ -281,7 +281,7 @@
     labels:
       app: "{{ __sap_vm_provision_fact_vm_name }}"
     # Virtual Disk volume definitions
-    data_volume_templates: "{{ __sap_vm_provision_fact_storage_disks_map + os_image }}"
+    data_volume_templates: "{{ __sap_vm_provision_fact_storage_disks_map + __sap_vm_provision_fact_os_image }}"
     spec: "{{ __sap_vm_provision_fact_vm_deploy_config }}"
   register: __sap_vm_provision_register_provision_host_single
   no_log: "{{ __sap_vm_provision_no_log }}"

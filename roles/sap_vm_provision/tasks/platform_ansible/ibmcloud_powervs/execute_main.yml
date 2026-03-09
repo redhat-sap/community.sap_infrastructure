@@ -183,7 +183,7 @@
     - name: SAP VM Provision - IBM Cloud PowerVS - Check for existing Boot Image imported already from IBM Power Infrastructure OS Catalog Stock Image
       ibm.cloudcollection.ibm_pi_image_info:
         pi_cloud_instance_id: "{{ __sap_vm_provision_register_ibmcloud_pi_workspace_service_instance.resource.guid }}" # must be GUID, not CRN
-        pi_image_name: "{{ register_ibmcloud_pi_imported_os_image_selected.name }}"
+        pi_image_name: "{{ __image.name }}"
         ibmcloud_api_key: "{{ sap_vm_provision_ibmcloud_api_key }}"
       environment:
         IC_REGION: "{{ __sap_vm_provision_fact_ibmcloud_powervs_region }}"  # Block override

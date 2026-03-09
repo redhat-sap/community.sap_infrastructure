@@ -198,7 +198,7 @@
 
 - name: SAP VM Provision - IBM Cloud PowerVS - Create fact for delegate host IP
   ansible.builtin.set_fact:
-    __sap_vm_provision_fact_private_ip: "{{ __sap_vm_provision_register_provision_host_single.resource.networks[0].ip }}"
+    __sap_vm_provision_fact_private_ip: "{{ __sap_vm_provision_register_provision_host_single_info.resource.networks[0].ip }}"
 
 
 - name: SAP VM Provision - IBM Cloud PowerVS - Copy facts to delegate host - when using Bastion SSH Proxy connection from Ansible control node to target node/s

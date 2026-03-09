@@ -53,8 +53,8 @@
         # Main
         - __sap_vm_provision_register_provision_host_all_add
         # Provision
-        - __sap_vm_provision_task_provision_host_single
-        - __sap_vm_provision_task_provision_host_single_info
+        - __sap_vm_provision_register_provision_host_single
+        - __sap_vm_provision_register_provision_host_single_info
       loop_control:
         loop_var: loop_item
         index_var: loop_item_index

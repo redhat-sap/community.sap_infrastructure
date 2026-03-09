@@ -112,7 +112,7 @@
 - name: SAP VM Provision - Set facts for all hosts - HA/DR - IBM Cloud, IBM Power VS  # noqa var-naming[no-role-prefix]
   ansible.builtin.set_fact:
     sap_ha_pacemaker_cluster_ibmcloud_powervs_workspace_crn:
-      "{{ __sap_vm_provision_task_ibmcloud_pi_workspace_service_instance.resource.crn }}"
+      "{{ __sap_vm_provision_register_ibmcloud_pi_workspace_service_instance.resource.crn }}"
     sap_ha_pacemaker_cluster_ibmcloud_api_key:
       "{{ sap_ha_pacemaker_cluster_ibmcloud_api_key | d(sap_vm_provision_ibmcloud_api_key) }}"
     # Lookup IBM Power VS Region from the given IBM Power VS Location during sap_vm_provision execution
