@@ -33,4 +33,4 @@
       - __sap_hypervisor_node_preconfigure_trident_missing_or_empty_keys | d([]) | length == 0
     fail_msg: >-
       FAIL: The following trident keys are missing or empty:
-      {{ __sap_hypervisor_node_preconfigure_trident_missing_or_empty_keys | join(', ') }}
+      {{ __sap_hypervisor_node_preconfigure_trident_missing_or_empty_keys | d([]) | join(', ') }}
