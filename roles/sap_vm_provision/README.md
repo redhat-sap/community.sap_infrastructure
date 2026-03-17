@@ -105,6 +105,17 @@ A series of choices are deciding Ansible Role behavior:
 - OVirt Virtual Machines `[Experimental]`
 - KubeVirt Virtual Machines `[beta]` (e.g. Red Hat OpenShift Virtualization)
 - VMware vSphere Virtual Machines `[Experimental]`
+
+#### Microsoft Azure: Reliability Disclaimer
+Due to ongoing reliability issues with the Ansible Collection `azure.azcollection` for Microsoft Azure, unfortunately this Ansible Collection `community.sap_infrastructure` can only provide **best effort** assistance when errors occur on Microsoft Azure.
+
+The reliability issues with the Ansible Collection for Microsoft Azure are due to underlying Python Packages for MS Azure and MS Azure API Schema versions across Regions. More details are below:
+
+- The `azure.azcollection` is dependent on an extensive list of Python libraries, which are locked to older versions than the MS Azure CLI STS/LTS.
+  - Specific installation instructions for these libraries must be followed precisely to ensure module stability.
+  - Upgrading existing Ansible Collection `azure.azcollection` can cause issues, due to changes in dependencies.
+- MS Azure API behavior is not globally uniform or predictable. The same playbook and variables may yield different results across different MS Azure regions due to localized API versions or resource provider constraints.
+  - This is specific to Ansible Modules from `azure.azcollection` calling MS Azure API and you can see different behavior when using Azure CLI.
 <!-- END Execution -->
 
 ### Execution Flow
