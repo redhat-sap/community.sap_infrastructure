@@ -128,6 +128,8 @@ The playbooks using this Ansible Role are required to dynamically create Ansible
 For more examples on how to use this role in different installation scenarios, refer to the [ansible.playbooks_for_sap](https://github.com/sap-linuxlab/ansible.playbooks_for_sap) playbooks.
 - These playbooks include Parallelization concept explained above.
 
+> **NOTE:** This role must be executed with `gather_facts: false` to ensure that connection is not attempted before provisioning, because fact gathering initiates SSH connection to non-existent hosts!
+
 Example for `aws_ec2_vs`:
 ```yaml
 - name: Ansible Play to create dynamic inventory group for provisioning

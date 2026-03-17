@@ -6,13 +6,16 @@
     sap_hypervisor_node_preconfigure_platform: redhat_ocp_virt
   tasks:
 
-    - name: Use kubeconfig file specified in environment variable K8S_AUTH_KUBECONFIG | KUBECONFIG if sap_hypervisor_node_preconfigure_ocp_kubeconfig_path is not defined.
+    # Use kubeconfig file specified in environment variable K8S_AUTH_KUBECONFIG | KUBECONFIG
+    # if sap_hypervisor_node_preconfigure_ocp_kubeconfig_path is not defined.
+    - name: Use kubeconfig file specified in environment variable if sap_hypervisor_node_preconfigure_ocp_kubeconfig_path is not defined.
+      ansible.builtin.set_fact:
+        sap_hypervisor_node_preconfigure_kubeconfig:
+          "{{ lookup('env', 'K8S_AUTH_KUBECONFIG') | default(lookup('env', 'KUBECONFIG'), true) }}"
       when: >
         sap_hypervisor_node_preconfigure_kubeconfig is not defined or
         sap_hypervisor_node_preconfigure_kubeconfig == None or
         sap_hypervisor_node_preconfigure_kubeconfig == ''
-      ansible.builtin.set_fact:
-        sap_hypervisor_node_preconfigure_kubeconfig: "{{ lookup('env', 'K8S_AUTH_KUBECONFIG') | default(lookup('env', 'KUBECONFIG'), true) }}"
 
     - name: Ensure that kubeconfig is set
       ansible.builtin.assert:
