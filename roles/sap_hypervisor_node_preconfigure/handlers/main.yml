@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Hypervisor node preconfigure - Include Handler Tasks for {{ sap_hypervisor_node_preconfigure_platform }}
+
+- name: SAP Hypervisor node preconfigure - Include Handler Tasks for {{ sap_hypervisor_node_preconfigure_platform }}
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/main.yml"
   when: (role_path ~ '/handlers/platform/' ~ sap_hypervisor_node_preconfigure_platform ~ '/main.yml') is file

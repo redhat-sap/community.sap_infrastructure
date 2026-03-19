@@ -1,17 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Create pod that initializes filesystem
+
+- name: Redhat OCP Virt - Create pod that initializes filesystem
   kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: v1
       kind: Pod
       metadata:
-        name: "make-filesystem-{{ __sap_hypervisor_node_preconfigure_register_worker.name }}"
+        name: "make-filesystem-{{ __sap_hypervisor_node_preconfigure_worker_item.name }}"
         namespace: default
       spec:
-        nodeName: "{{ __sap_hypervisor_node_preconfigure_register_worker.name }}"
+        nodeName: "{{ __sap_hypervisor_node_preconfigure_worker_item.name }}"
         containers:
-          - name: "make-filesystem-{{ __sap_hypervisor_node_preconfigure_register_worker.name }}"
+          - name: "make-filesystem-{{ __sap_hypervisor_node_preconfigure_worker_item.name }}"
             image: quay.io/fedora/fedora:latest
             command:
               - /bin/bash

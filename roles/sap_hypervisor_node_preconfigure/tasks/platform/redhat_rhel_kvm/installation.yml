@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Ensure required packages are installed
+
+- name: Redhat RHEL KVM - Ensure required packages are installed
   ansible.builtin.package:
     state: present
     name: "{{ sap_hypervisor_node_preconfigure_packages }}"

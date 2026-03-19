@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Enable DownwardMetrics Feature Gate on kubevirt-hyperconverged
+
+- name: Redhat OCP Virt - Enable DownwardMetrics Feature Gate on kubevirt-hyperconverged
   kubernetes.core.k8s:
     state: present
     definition:

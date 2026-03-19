@@ -1,13 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Include worker node mkfs loop
+
+- name: Redhat OCP Virt - Include worker node mkfs loop
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/storage/worker-mkfs-loop.yml"
   loop: "{{ sap_hypervisor_node_preconfigure_cluster_config.workers }}"
   loop_control:
-    loop_var: __sap_hypervisor_node_preconfigure_register_worker
-    index_var: __sap_hypervisor_node_preconfigure_register_worker_nr
+    loop_var: __sap_hypervisor_node_preconfigure_worker_item
 
-- name: Create systemd files for local storage handling
+- name: Redhat OCP Virt - Create systemd files for local storage handling
   kubernetes.core.k8s:
     state: present
     definition:
@@ -33,16 +34,18 @@
                   [Service]
                   Type=oneshot
                   ExecStart=/bin/mkdir -p {{ sap_hypervisor_node_preconfigure_hpp_mountpoint }}
-                  ExecStart=mount {{ sap_hypervisor_node_preconfigure_cluster_config.worker_localstorage_device }} {{ sap_hypervisor_node_preconfigure_hpp_mountpoint }}
+                  ExecStart=mount {{ __exec_start }}
                   ExecStart=/usr/bin/chcon -Rt container_file_t  {{ sap_hypervisor_node_preconfigure_hpp_mountpoint }}
                 enabled: true
                 name: create-mount-localstorage.service
+  vars:
+    __exec_start: "{{ sap_hypervisor_node_preconfigure_cluster_config.worker_localstorage_device }} {{ sap_hypervisor_node_preconfigure_hpp_mountpoint }}"
 
-- name: Include wait mcp finished updating
+- name: Redhat OCP Virt - Include wait mcp finished updating
   ansible.builtin.include_tasks:
     file: "platform/{{ sap_hypervisor_node_preconfigure_platform }}/cluster/wait-mcp-finished-updating.yml"
 
-- name: Create hostpath provisioner (HPP)
+- name: Redhat OCP Virt - Create hostpath provisioner (HPP)
   kubernetes.core.k8s:
     state: present
     definition:
@@ -59,7 +62,7 @@
           nodeSelector:
             kubernetes.io/os: linux
 
-- name: Wait for HostPathProvisioner status to become Available
+- name: Redhat OCP Virt - Wait for HostPathProvisioner status to become Available
   kubernetes.core.k8s_info:
     api_version: hostpathprovisioner.kubevirt.io/v1beta1
     kind: HostPathProvisioner
@@ -72,7 +75,7 @@
     wait_sleep: 30
     wait_timeout: 300
 
-- name: Create storage class for HPP
+- name: Redhat OCP Virt - Create storage class for HPP
   kubernetes.core.k8s:
     state: present
     definition:
@@ -81,7 +84,10 @@
       metadata:
         name: "{{ sap_hypervisor_node_preconfigure_cluster_config.worker_localstorage_storageclass_name }}"
         annotations:
-          storageclass.kubernetes.io/is-default-class: "{{ 'true' if sap_hypervisor_node_preconfigure_cluster_config.worker_localstorage_default_storageclass is true else 'false' }}"
+          storageclass.kubernetes.io/is-default-class:
+            "{{ 'true'
+              if sap_hypervisor_node_preconfigure_cluster_config.worker_localstorage_default_storageclass | d(false)
+              else 'false' }}"
       provisioner: kubevirt.io.hostpath-provisioner
       reclaimPolicy: Delete
       volumeBindingMode: WaitForFirstConsumer
