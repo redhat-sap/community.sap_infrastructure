@@ -4,6 +4,29 @@ community.sap\_infrastructure Release Notes
 
 .. contents:: Topics
 
+v1.4.0
+======
+
+Release Summary
+---------------
+
+Refactored all roles following best practices, complete linting and compatibility with ansible-core 2.20.
+
+Minor Changes
+--------
+- sap_vm_provision - Rework role with best practices to align with project (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/155)
+- sap_vm_provision - Update ibmcloud PowerVS image dictionaries (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/152)
+- sap_vm_provision - Add MS Azure disclaimer about reliability of azure collection (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/159)
+- sap_hypervisor_node_preconfigure - Refactor role and conform to linting (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/156)
+- sap_vm_temp_vip - Refactor variables and improve logic for skipping hosts (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/157)
+
+Bugfixes
+--------
+- sap_vm_provision - Fix deprecated network parameter for amazon.aws.ec2_instance (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/153)
+- sap_vm_provision - Fix adding /etc/hosts for all in play not just itself (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/160)
+- sap_vm_temp_vip - Fix NoneType broadcast variable (https://github.com/sap-linuxlab/community.sap_infrastructure/pull/154)
+
+
 v1.3.1
 ======
 
