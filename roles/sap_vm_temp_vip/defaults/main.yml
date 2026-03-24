@@ -1,19 +1,23 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
+
 # General variables that are calculated from Ansible facts
-sap_vm_temp_vip_default_ip: "{{ ansible_default_ipv4.address | default('') }}"
-sap_vm_temp_vip_default_netmask: "{{ ansible_default_ipv4.netmask | default('') }}"
-sap_vm_temp_vip_default_prefix: "{{ ansible_default_ipv4.prefix | default('') }}"
-sap_vm_temp_vip_default_broadcast: "{{ ansible_default_ipv4.broadcast | default('') }}"
-sap_vm_temp_vip_default_interface: "{{ ansible_default_ipv4.interface | default('eth0') }}"
+sap_vm_temp_vip_default_ip: "{{ ansible_facts['default_ipv4'].address | d('') }}"
+sap_vm_temp_vip_default_netmask: "{{ ansible_facts['default_ipv4'].netmask | d('') }}"
+sap_vm_temp_vip_default_prefix: "{{ ansible_facts['default_ipv4'].prefix | d('') }}"
+sap_vm_temp_vip_default_broadcast: "{{ ansible_facts['default_ipv4'].broadcast | d('') }}"
+sap_vm_temp_vip_default_interface: "{{ ansible_facts['default_ipv4'].interface | d('eth0') }}"
 
 
-# SAP specific IPs are defined from sap_install.sap_ha_pacemaker_role input variables
-sap_vm_temp_vip_hana_primary: "{{ sap_ha_pacemaker_cluster_vip_hana_primary_ip_address | default('') }}"
-sap_vm_temp_vip_anydb_primary: ""
-sap_vm_temp_vip_nwas_abap_ascs: "{{ sap_ha_pacemaker_cluster_vip_nwas_abap_ascs_ip_address | default('') }}"
-sap_vm_temp_vip_nwas_abap_ers: "{{ sap_ha_pacemaker_cluster_vip_nwas_abap_ers_ip_address | default('') }}"
-# sap_vm_temp_vip_nwas_abap_pas: "{{ sap_ha_pacemaker_cluster_vip_nwas_abap_pas_ip_address | default('') }}"
-# sap_vm_temp_vip_nwas_abap_aas: "{{ sap_ha_pacemaker_cluster_vip_nwas_abap_aas_ip_address | default('') }}"
+# SAP specific IPs are defined from sap_vm_provision and sap_install.sap_ha_pacemaker_role input variables
+sap_vm_temp_vip_hana_primary:
+  "{{ sap_vm_provision_ha_vip_hana_primary | d(sap_ha_pacemaker_cluster_vip_hana_primary_ip_address) | d('') }}"
+sap_vm_temp_vip_anydb_primary:
+  "{{ sap_vm_provision_ha_vip_anydb_primary | d('') }}"
+sap_vm_temp_vip_nwas_abap_ascs:
+  "{{ sap_vm_provision_ha_vip_nwas_abap_ascs | d(sap_ha_pacemaker_cluster_vip_nwas_abap_ascs_ip_address) | d('') }}"
+sap_vm_temp_vip_nwas_abap_ers:
+  "{{ sap_vm_provision_ha_vip_nwas_abap_ers | d(sap_ha_pacemaker_cluster_vip_nwas_abap_ers_ip_address) | d('') }}"
 
 # Customized group names are used by sap_host_type in host_specifications_dictionary plan during provisioning.
 # Variables are loaded from sap_vm_provision variables first.

@@ -1,51 +1,36 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
 
 ## Set Virtual IPs
 # for AWS VPC, must be outside of VPC Subnet CIDR Range
 # for MS Azure VNet, must be within the VNet Subnet CIDR Range attached to the Load Balancer
 # for GCP VPC, must be within the VNet Subnet CIDR Range attached to the Load Balancer
-# for IBM Cloud VPC, will automatically be within the VPC Subnet CIDR Range as Load Balancer owns/determines the Virtual IP; must not set VIP on the Host OS Network Interface as a secondary IP
+# for IBM Cloud VPC, will automatically be within the VPC Subnet CIDR Range
+#   as Load Balancer owns/determines the Virtual IP; must not set VIP on the Host OS Network Interface as a secondary IP
 # for IBM Power IaaS VLAN on IBM Cloud, must be within the VLAN Subnet CIDR Range
 # for IBM PowerVM, must be within the VLAN Subnet CIDR Range
 
 ## Set Virtual IP's Netmask / CIDR Prefix
 # Use of Primary IP Address default netmask prefix and/or the broadcast is automatic for Linux Pacemaker
 # For AWS, this would be static Netmask CIDR /32 (see AWS 'Overlay IP' documentation)
-# For GCP, this would be static Netmask CIDR /32, unless using custom OS Image - https://cloud.google.com/vpc/docs/create-use-multiple-interfaces#i_am_having_connectivity_issues_when_using_a_netmask_that_is_not_32
+# For GCP, this would be static Netmask CIDR /32, unless using custom OS Image
+#   https://cloud.google.com/vpc/docs/create-use-multiple-interfaces#i_am_having_connectivity_issues_when_using_a_netmask_that_is_not_32
 # For MS Azure, this would be the VNet Subnet Netmask CIDR e.g. /24
 
 ## Set Virtual IP - Other related information
-# In all cases, use noprefixroute parameter to avoid automatic creation of OS route table entries (i.e. 'ip route'), which occurs if the IP Address is outside of the existing Subnet Range
+# In all cases, use noprefixroute parameter to avoid automatic creation of OS route table entries
+# (i.e. 'ip route'), which occurs if the IP Address is outside of the existing Subnet Range
 
 # TODO: Add rare scenario for PAS/AAS VIP if needed.
 # (groups[sap_vm_temp_vip_group_nwas_pas] is defined and inventory_hostname in groups[sap_vm_temp_vip_group_nwas_pas])
 # and (groups[sap_vm_temp_vip_group_nwas_pas] is defined and (groups[sap_vm_temp_vip_group_nwas_pas]|length>0))
 
 
-# Define VIP address based on target host group which is filtered in main.yml
-# Else ensures that we always return String, not NoneType.
-- name: Set fact for VIP address depending on target host group
-  ansible.builtin.set_fact:
-    __sap_vm_temp_vip_address: >-
-      {% if groups[sap_vm_temp_vip_group_hana_secondary] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_hana_primary] -%}
-        {{ sap_vm_temp_vip_hana_primary | regex_replace('/.*', '') }}
-      {%- elif groups[sap_vm_temp_vip_group_anydb_secondary] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_anydb_primary] -%}
-        {{ sap_vm_temp_vip_anydb_primary | regex_replace('/.*', '') }}
-      {%- elif groups[sap_vm_temp_vip_group_nwas_ers] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_nwas_ascs] -%}
-        {{ sap_vm_temp_vip_nwas_abap_ascs | regex_replace('/.*', '') }}
-      {%- elif groups[sap_vm_temp_vip_group_nwas_ers] | d([]) | length > 0 and inventory_hostname in groups[sap_vm_temp_vip_group_nwas_ers] -%}
-        {{ sap_vm_temp_vip_nwas_abap_ers | regex_replace('/.*', '') }}
-      {%- else -%}
-        {{ '' }}
-      {%- endif %}
-
 # Get content of ip address show filtered by VIP
-- name: Get contents of ip address show for {{ __sap_vm_temp_vip_address }}
+- name: SAP VM VIP - Get contents of ip address show for {{ __sap_vm_temp_vip_fact_address }}
   ansible.builtin.shell:
-    cmd: set -o pipefail && ip -oneline address show | grep {{ __sap_vm_temp_vip_address }}
-  when:
-    - __sap_vm_temp_vip_address | length > 0
-  register: __sap_vm_temp_vip_get_vip
+    cmd: set -o pipefail && ip -oneline address show | grep {{ __sap_vm_temp_vip_fact_address }}
+  register: __sap_vm_temp_vip_register_get_vip
   changed_when: false
   ignore_errors: true
   failed_when: false
@@ -57,81 +42,89 @@
 # 3. Else inform that more than one VIP was found
 # 4. Else inform that comparison failed because provided prefix was empty
 # join('') is used instead of [0] because duplicate records are filtered out
-- name: Show information if VIP is already present on network interfaces
+- name: SAP VM VIP - Show information if VIP is already present on network interfaces
   ansible.builtin.debug:
     msg: >-
       {%- if __vip_expected == __vip_found -%}
         VIP address {{ __vip_expected }} is already present. VIP creation will be skipped.
-      {%- elif __vip_expected != __vip_found and __sap_vm_temp_vip_prefix != '' and not __vip_multiple -%}
+      {%- elif __vip_expected != __vip_found and __sap_vm_temp_vip_fact_prefix != '' and not __vip_multiple -%}
         VIP address {{ __vip_expected }} is already present with different prefix {{ __vip_found }}. VIP creation will be skipped.
       {%- elif __vip_multiple -%}
         Multiple VIP address entries found. VIP creation will be skipped.
       {%- else -%}
-        VIP address {{ __sap_vm_temp_vip_address }} is already present, but comparison failed because of empty sap_vm_temp_vip_default_prefix.
+        VIP address {{ __sap_vm_temp_vip_fact_address }} is already present, but comparison failed because of empty sap_vm_temp_vip_default_prefix.
       {%- endif -%}
   vars:
-    __vip_expected: "{{ __sap_vm_temp_vip_address ~ '/' ~ __sap_vm_temp_vip_prefix }}"
-    __vip_found: "{{ __sap_vm_temp_vip_get_vip.stdout | regex_search('inet ([0-9.]+/[0-9]+)', '\\1') | join('') if not __vip_multiple else '' }}"
-    __vip_multiple: "{{ true if __sap_vm_temp_vip_get_vip.stdout_lines | length > 1 else false }}"
+    __vip_expected: "{{ __sap_vm_temp_vip_fact_address ~ '/' ~ __sap_vm_temp_vip_fact_prefix }}"
+    __vip_found: "{{ __sap_vm_temp_vip_register_get_vip.stdout | regex_search('inet ([0-9.]+/[0-9]+)', '\\1') | join('') if not __vip_multiple else '' }}"
+    __vip_multiple: "{{ true if __sap_vm_temp_vip_register_get_vip.stdout_lines | length > 1 else false }}"
   when:
-    - __sap_vm_temp_vip_get_vip.stdout is defined and __sap_vm_temp_vip_get_vip.stdout | length > 0
-    - __sap_vm_temp_vip_address | length > 0
+    - __sap_vm_temp_vip_register_get_vip.stdout is defined
+    - __sap_vm_temp_vip_register_get_vip.stdout | length > 0
 
 
 # Dynamically generate IP creation command depending on values gathered before:
 # 1. VIP address is defined based on target host group
 # 2. Prefix is defined or generated using netmask or primary IP prefix
 # 3. Broadcast IP is used only if it was defined or generated using primary IP broadcast
-- name: Generate command for IP creation - Prefix /{{ __sap_vm_temp_vip_prefix }} static IPs
+# NOTE: Command is split into multiple lines inside of jinja2 brackets to ensure newline characters are not added.
+- name: SAP VM VIP - Generate command for IP creation - Prefix /{{ __sap_vm_temp_vip_fact_prefix }} static IPs
   ansible.builtin.set_fact:
     __sap_vm_temp_vip_command: >-
-      {%- if __sap_vm_temp_vip_broadcast | length > 0 -%}
-        ip address add {{ __sap_vm_temp_vip_address }}/{{ __sap_vm_temp_vip_prefix }} brd {{ __sap_vm_temp_vip_broadcast }} dev {{ sap_vm_temp_vip_default_interface }} noprefixroute
+      {%- if __sap_vm_temp_vip_fact_broadcast | length > 0 -%}
+        ip address add {{ __sap_vm_temp_vip_fact_address }}/{{ __sap_vm_temp_vip_fact_prefix }} brd {{
+          __sap_vm_temp_vip_fact_broadcast }} dev {{ sap_vm_temp_vip_default_interface | d('eth0') }} noprefixroute
       {%- else -%}
-        ip address add {{ __sap_vm_temp_vip_address }}/{{ __sap_vm_temp_vip_prefix }} brd + dev {{ sap_vm_temp_vip_default_interface }} noprefixroute
+        ip address add {{ __sap_vm_temp_vip_fact_address }}/{{ __sap_vm_temp_vip_fact_prefix }} brd + dev {{
+          sap_vm_temp_vip_default_interface | d('eth0') }} noprefixroute
       {%- endif -%}
   when:
-    - __sap_vm_temp_vip_address | length > 0
-    - __sap_vm_temp_vip_prefix | length > 0
-    - __sap_vm_temp_vip_get_vip.stdout is defined and __sap_vm_temp_vip_get_vip.stdout | length == 0
+    - __sap_vm_temp_vip_fact_prefix | length > 0
+    - __sap_vm_temp_vip_register_get_vip.stdout is defined
+    - __sap_vm_temp_vip_register_get_vip.stdout | length == 0
 
 
 # Show debug information with input details if command was generated:
-- name: Show actions to be executed to create temporary VIP
+- name: SAP VM VIP - Show actions to be executed to create temporary VIP
   ansible.builtin.debug:
-    msg:
-      - "Ansible Facts:"
-      - primary_ip_address = {{ sap_vm_temp_vip_default_ip }}
-      - primary_ip_address_netmask = {{ sap_vm_temp_vip_default_netmask }}
-      - primary_ip_address_netmask_cidr_prefix = {{ __sap_vm_temp_vip_prefix }}
-      - primary_ip_broadcast_address = {{ __sap_vm_temp_vip_broadcast }}
-      - ""
-      - "Command to be executed:"
-      - "{{ __sap_vm_temp_vip_command }}"
+    msg: |
+      INFO: Temporary Virtual IP Address details:
+      - IP Address: {{ sap_vm_temp_vip_default_ip | d('N/A') }} from the variable 'sap_vm_temp_vip_default_ip'
+      - Netmask: {{ sap_vm_temp_vip_default_netmask | d('N/A') }} from the variable 'sap_vm_temp_vip_default_netmask'
+      - Netmask CIDR Prefix: {{ __sap_vm_temp_vip_fact_prefix | d('N/A') }} from the variable 'sap_vm_temp_vip_default_prefix'.
+      - Broadcast Address: {{ __sap_vm_temp_vip_fact_broadcast | d('N/A') }} from the variable 'sap_vm_temp_vip_default_broadcast'.
+      - Interface: {{ sap_vm_temp_vip_default_interface | d('eth0') }} from the variable 'sap_vm_temp_vip_default_interface'.
+
+      Command to be executed:
+      "{{ __sap_vm_temp_vip_command }}"
   when:
-    - __sap_vm_temp_vip_command is defined and __sap_vm_temp_vip_command | length > 0
-    - __sap_vm_temp_vip_get_vip.stdout is defined and __sap_vm_temp_vip_get_vip.stdout | length == 0
+    - __sap_vm_temp_vip_command | d('') | length > 0
+    - __sap_vm_temp_vip_register_get_vip.stdout is defined
+    - __sap_vm_temp_vip_register_get_vip.stdout | length == 0
 
 # Show debug information with input details if command was not generated and some inputs are empty:
-- name: Show information if command was unable to be generated
+- name: SAP VM VIP - Show information if command was unable to be generated
   ansible.builtin.debug:
-    msg:
-      - "ERROR: Unable to generate command because of lacking data."
-      - ""
-      - "Please review facts below, to see which are empty or missing:"
-      - primary_ip_address = {{ sap_vm_temp_vip_default_ip }}
-      - primary_ip_address_netmask = {{ sap_vm_temp_vip_default_netmask }}
-      - primary_ip_address_netmask_cidr_prefix = {{ __sap_vm_temp_vip_prefix }}
-      - primary_ip_broadcast_address = {{ __sap_vm_temp_vip_broadcast }}
+    msg: |
+      FAIL: Unable to generate command because of lack of data.
+
+      Please review Virtual IP Address details below, to see which are empty or missing:
+      - IP Address: {{ sap_vm_temp_vip_default_ip | d('N/A') }} from the variable 'sap_vm_temp_vip_default_ip'
+      - Netmask: {{ sap_vm_temp_vip_default_netmask | d('N/A') }} from the variable 'sap_vm_temp_vip_default_netmask'
+      - Netmask CIDR Prefix: {{ __sap_vm_temp_vip_fact_prefix | d('N/A') }} from the variable 'sap_vm_temp_vip_default_prefix'.
+      - Broadcast Address: {{ __sap_vm_temp_vip_fact_broadcast | d('N/A') }} from the variable 'sap_vm_temp_vip_default_broadcast'.
+      - Interface: {{ sap_vm_temp_vip_default_interface | d('eth0') }} from the variable 'sap_vm_temp_vip_default_interface'.
   when:
-    - __sap_vm_temp_vip_command is not defined or (__sap_vm_temp_vip_command is defined and __sap_vm_temp_vip_command | length == 0)
-    - __sap_vm_temp_vip_get_vip.stdout is defined and __sap_vm_temp_vip_get_vip.stdout | length == 0
+    - __sap_vm_temp_vip_command is not defined
+      or (__sap_vm_temp_vip_command is defined and __sap_vm_temp_vip_command | length == 0)
+    - __sap_vm_temp_vip_register_get_vip.stdout is defined
+    - __sap_vm_temp_vip_register_get_vip.stdout | length == 0
 
 # Execute generated command to add VIP to network interface if command is generated and VIP is not present yet.
-- name: Append temporary Virtual IP (VIP) to network interface  # noqa command-instead-of-shell
+- name: SAP VM VIP - Append temporary Virtual IP (VIP) to network interface  # noqa command-instead-of-shell
   ansible.builtin.shell:
     cmd: "{{ __sap_vm_temp_vip_command }}"
   when:
     - __sap_vm_temp_vip_command is defined and __sap_vm_temp_vip_command | length > 0
-    - __sap_vm_temp_vip_get_vip.stdout | length == 0
-  register: __sap_vm_temp_vip_command_output
+    - __sap_vm_temp_vip_register_get_vip.stdout | length == 0
+  changed_when: true

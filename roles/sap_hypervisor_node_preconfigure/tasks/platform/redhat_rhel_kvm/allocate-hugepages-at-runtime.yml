@@ -1,29 +1,33 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Install libhugetlbfs
+
+- name: Redhat RHEL KVM - Install libhugetlbfs
   ansible.builtin.package:
     name:
       - libhugetlbfs
       - libhugetlbfs-utils
     state: present
 
-# better location than rc.local?
-- name: Add hugepage allocation to /etc/rc.local
+# TODO: Discuss if there is better location than rc.local?
+- name: Redhat RHEL KVM - Add hugepage allocation to /etc/rc.local
   ansible.builtin.blockinfile:
     path: /etc/rc.local
     marker: ""
     block: |
         hugeadm --create-mounts --pool-pages-min 1G:$(free -g | grep "Mem:" | awk '{print $2-"{{ sap_hypervisor_node_preconfigure_reserved_ram }}"}')
 
-- name: Set default hugepage size
+- name: Redhat RHEL KVM - Set default hugepage size
   ansible.builtin.lineinfile:
     path: /etc/default/grub
     backup: true
     backrefs: true
     state: present
-    regexp: '^(GRUB_CMDLINE_LINUX=(?!.* {{ item }}).*). *$'
+    regexp: '^(GRUB_CMDLINE_LINUX=(?!.* {{ size_item }}).*). *$'
     line: "\\1 {{ item }}\""
-  with_items:
+  loop:
     - default_hugepagesz=1GB
     - hugepagesz=1GB
-  notify: "Regenerate grub2 conf handler"
+  loop_control:
+    loop_var: size_item
+  notify: __sap_hypervisor_node_preconfigure_regenerate_grub2_conf_handler
   tags: grubconfig

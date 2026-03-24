@@ -105,6 +105,17 @@ A series of choices are deciding Ansible Role behavior:
 - OVirt Virtual Machines `[Experimental]`
 - KubeVirt Virtual Machines `[beta]` (e.g. Red Hat OpenShift Virtualization)
 - VMware vSphere Virtual Machines `[Experimental]`
+
+#### Microsoft Azure: Reliability Disclaimer
+Due to ongoing reliability issues with the Ansible Collection `azure.azcollection` for Microsoft Azure, unfortunately this Ansible Collection `community.sap_infrastructure` can only provide **best effort** assistance when errors occur on Microsoft Azure.
+
+The reliability issues with the Ansible Collection for Microsoft Azure are due to underlying Python Packages for MS Azure and MS Azure API Schema versions across Regions. More details are below:
+
+- The `azure.azcollection` is dependent on an extensive list of Python libraries, which are locked to older versions than the MS Azure CLI STS/LTS.
+  - Specific installation instructions for these libraries must be followed precisely to ensure module stability.
+  - Upgrading existing Ansible Collection `azure.azcollection` can cause issues, due to changes in dependencies.
+- MS Azure API behavior is not globally uniform or predictable. The same playbook and variables may yield different results across different MS Azure regions due to localized API versions or resource provider constraints.
+  - This is specific to Ansible Modules from `azure.azcollection` calling MS Azure API and you can see different behavior when using Azure CLI.
 <!-- END Execution -->
 
 ### Execution Flow
@@ -127,6 +138,8 @@ The playbooks using this Ansible Role are required to dynamically create Ansible
 
 For more examples on how to use this role in different installation scenarios, refer to the [ansible.playbooks_for_sap](https://github.com/sap-linuxlab/ansible.playbooks_for_sap) playbooks.
 - These playbooks include Parallelization concept explained above.
+
+> **NOTE:** This role must be executed with `gather_facts: false` to ensure that connection is not attempted before provisioning, because fact gathering initiates SSH connection to non-existent hosts!
 
 Example for `aws_ec2_vs`:
 ```yaml

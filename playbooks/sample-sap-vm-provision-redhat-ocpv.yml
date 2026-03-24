@@ -19,21 +19,24 @@
 
     - name: Save ansible_user as execution_host user
       ansible.builtin.set_fact:
-        __sap_vm_provision_kubevirt_vm_register_execution_host_user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
+        sap_vm_provision_kubevirt_vm_execution_host_user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
 
     - name: Create Tempdir
       ansible.builtin.tempfile:
         state: directory
         suffix: "_sap_vm_provision_kubevirt_vm"
-      register: __sap_vm_provision_kubevirt_vm_register_tmpdir
+      register: __sap_vm_provision_register_kubevirt_vm_tmpdir
 
-    - name: Use kubeconfig file specified in environment variable K8S_AUTH_KUBECONFIG | KUBECONFIG if sap_vm_provision_kubevirt_vm_kubeconfig_path is not defined
+    # Use kubeconfig file specified in environment variable K8S_AUTH_KUBECONFIG | KUBECONFIG
+    # if sap_hypervisor_node_preconfigure_ocp_kubeconfig_path is not defined.
+    - name: Use kubeconfig file specified in environment variable if sap_hypervisor_node_preconfigure_ocp_kubeconfig_path is not defined.
+      ansible.builtin.set_fact:
+        sap_vm_provision_kubevirt_vm_kubeconfig:
+          "{{ lookup('env', 'K8S_AUTH_KUBECONFIG') | default(lookup('env', 'KUBECONFIG'), true) }}"
       when: >
         sap_vm_provision_kubevirt_vm_kubeconfig is not defined or
         sap_vm_provision_kubevirt_vm_kubeconfig == None or
         sap_vm_provision_kubevirt_vm_kubeconfig == ''
-      ansible.builtin.set_fact:
-        sap_vm_provision_kubevirt_vm_kubeconfig: "{{ lookup('env', 'K8S_AUTH_KUBECONFIG') | default(lookup('env', 'KUBECONFIG'), true) }}"
 
     - name: Ensure that kubeconfig is set
       ansible.builtin.assert:
@@ -50,8 +53,8 @@
         sap_vm_provision_iac_type: ansible
         sap_vm_provision_iac_platform: kubevirt_vm
         sap_vm_provision_execution_host: "{{ sap_vm_provision_execution_host }}"
-        __sap_vm_provision_kubevirt_vm_register_execution_host_user: "{{ __sap_vm_provision_kubevirt_vm_register_execution_host_user }}"
-        __sap_vm_provision_kubevirt_vm_register_tmpdir: "{{ __sap_vm_provision_kubevirt_vm_register_tmpdir }}"
+        sap_vm_provision_kubevirt_vm_execution_host_user: "{{ sap_vm_provision_kubevirt_vm_execution_host_user }}"
+        __sap_vm_provision_register_kubevirt_vm_tmpdir: "{{ __sap_vm_provision_register_kubevirt_vm_tmpdir }}"
         sap_vm_provision_kubevirt_vm_kubeconfig: "{{ sap_vm_provision_kubevirt_vm_kubeconfig }}"
       loop: "{{ sap_vm_provision_kubevirt_vm_host_specifications_dictionary[sap_vm_provision_host_specification_plan].keys() }}"
 
@@ -75,4 +78,4 @@
           delegate_to: "{{ sap_vm_provision_execution_host }}"
           ansible.builtin.file:
             state: absent
-            path: "{{ __sap_vm_provision_kubevirt_vm_register_tmpdir.path }}"
+            path: "{{ __sap_vm_provision_register_kubevirt_vm_tmpdir.path }}"

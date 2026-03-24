@@ -1,5 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
 
 # Define which hypervisor platform to use (String).
 # Available options: redhat_ocp_virt, redhat_rhel_kvm
 sap_hypervisor_node_preconfigure_platform: ''
+
+# TODO: Add more platforms like: ibmpower_phyp, vmware_vsphere

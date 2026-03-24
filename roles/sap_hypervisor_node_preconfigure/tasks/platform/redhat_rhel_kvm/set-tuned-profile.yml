@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Create tuned profile directory /usr/lib/tuned/sap-hana-kvm-host
+
+- name: Redhat RHEL KVM - Create tuned profile directory /usr/lib/tuned/sap-hana-kvm-host
   ansible.builtin.file:
     path: /usr/lib/tuned/sap-hana-kvm-host
     state: directory
@@ -7,7 +9,7 @@
   become: true
   become_user: root
 
-- name: Create sap-hana-kvm-host tuned profile
+- name: Redhat RHEL KVM - Create sap-hana-kvm-host tuned profile
   ansible.builtin.copy:
     dest: "/usr/lib/tuned/sap-hana-kvm-host/tuned.conf"
     mode: "0644"
@@ -36,9 +38,10 @@
   become: true
   become_user: root
 
-- name: Activate tuned profile
-  ansible.builtin.command: tuned-adm profile sap-hana-kvm-host
-  register: __sap_hypervisor_node_preconfigre_register_tuned_activation_output
+- name: Redhat RHEL KVM - Activate tuned profile
+  ansible.builtin.command:
+    cmd: tuned-adm profile sap-hana-kvm-host
+  register: __sap_hypervisor_node_preconfigure_register_tuned_activation_output
   become: true
   become_user: root
-  changed_when: __sap_hypervisor_node_preconfigre_register_tuned_activation_output.rc != 0
+  changed_when: __sap_hypervisor_node_preconfigure_register_tuned_activation_output.rc != 0

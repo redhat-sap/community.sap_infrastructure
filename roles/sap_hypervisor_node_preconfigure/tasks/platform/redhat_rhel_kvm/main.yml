@@ -1,28 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Display sap_hypervisor_node_preconfigure_assert
-  ansible.builtin.debug:
-    var: sap_hypervisor_node_preconfigure_assert
 
-- name: Set filename prefix to empty string if role is run in normal mode
-  ansible.builtin.set_fact:
-    assert_prefix: ""
+- name: Block to set assert prefix
+  vars:
+    __prefix: "{{ 'assert-' if sap_hypervisor_node_preconfigure_assert | d(false) else '' }}"
+  block:
+    - name: Redhat RHEL KVM - Include the task file installation.yml
+      ansible.builtin.include_tasks:
+        file: '{{ __prefix }}installation.yml'
 
-- name: Prepend filename with assert string if role is run in assert mode
-  ansible.builtin.set_fact:
-    assert_prefix: "assert-"
-  when: sap_hypervisor_node_preconfigure_assert
+    - name: Redhat RHEL KVM - Include the task file configuration.yml
+      ansible.builtin.include_tasks:
+        file: '{{ __prefix }}configuration.yml'
 
-- name: Include the task file "{{ assert_prefix ~ 'installation.yml' }}"
-  ansible.builtin.include_tasks: '{{ assert_prefix }}installation.yml'
+    - name: Redhat RHEL KVM - Include the task file set-tuned-profile.yml
+      ansible.builtin.include_tasks:
+        file: '{{ __prefix }}set-tuned-profile.yml'
 
-- name: Include the task file "{{ assert_prefix ~ 'configuration.yml' }}"
-  ansible.builtin.include_tasks: '{{ assert_prefix }}configuration.yml'
-
-- name: Include the task file "{{ assert_prefix ~ 'set-tuned-profile.yml' }}"
-  ansible.builtin.include_tasks: '{{ assert_prefix }}set-tuned-profile.yml'
-
-- name: Include the task file "{{ assert_prefix ~ 'rhv-hooks.yml' }}"
-  ansible.builtin.include_tasks: "{{ assert_prefix }}rhv-hooks.yml"
-  loop:
-    - 50_hana
-    - 50_iothread_pinning
+    - name: Redhat RHEL KVM - Include the task file rhv-hooks.yml
+      ansible.builtin.include_tasks:
+        file: "{{ __prefix }}rhv-hooks.yml"
+      loop:
+        - 50_hana
+        - 50_iothread_pinning
+      loop_control:
+        loop_var: __sap_hypervisor_node_preconfigure_hook_item

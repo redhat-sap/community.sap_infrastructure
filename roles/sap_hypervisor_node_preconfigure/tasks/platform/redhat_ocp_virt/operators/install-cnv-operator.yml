@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Create the CNV Operator namespace
+
+- name: Redhat OCP Virt - Create the CNV Operator namespace
   kubernetes.core.k8s:
     state: present
     definition:
@@ -8,7 +10,7 @@
       metadata:
         name: "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
 
-- name: Create CNV OperatorGroup kubevirt-hyperconverged-group
+- name: Redhat OCP Virt - Create CNV OperatorGroup kubevirt-hyperconverged-group
   kubernetes.core.k8s:
     state: present
     definition:
@@ -21,7 +23,7 @@
         targetNamespaces:
           - "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
 
-- name: Create CNV Subscription
+- name: Redhat OCP Virt - Create CNV Subscription
   kubernetes.core.k8s:
     state: present
     definition:
@@ -36,72 +38,71 @@
         name: kubevirt-hyperconverged
         channel: "{{ sap_hypervisor_node_preconfigure_ocpv_subscription_channel }}"
 
-- name: Get Install Plan Name from Subscription
-  retries: 10
-  delay: 10
+- name: Redhat OCP Virt - Get Install Plan Name from Subscription
   kubernetes.core.k8s_info:
     api_version: operators.coreos.com/v1alpha1
     kind: Subscription
     name: hco-operatorhub
     namespace: "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
   register: __sap_hypervisor_node_preconfigure_register_cnv_subscription_install_plan_name
+  retries: 10
+  delay: 10
   until: __sap_hypervisor_node_preconfigure_register_cnv_subscription_install_plan_name.resources[0].status.installPlanRef.name is defined
   changed_when: true
 
-- name: Set Install Plan Name
-  ansible.builtin.set_fact:
-    install_plan_name: "{{ __sap_hypervisor_node_preconfigure_register_cnv_subscription_install_plan_name.resources[0].status.installPlanRef.name }}"
-
 - name: Wait for Install Plan to finish
-  vars:
-    install_plan_name: "{{ __sap_hypervisor_node_preconfigure_register_cnv_subscription_install_plan_name.stdout }}"
   block:
-    - name: Get Install Plan details  # noqa: ignore-errors
+    # Reason for noqa: Ignore errors during retry loop and fail in subsequent task.
+    - name: Redhat OCP Virt - Get Install Plan details  # noqa: ignore-errors
       kubernetes.core.k8s_info:
         api_version: operators.coreos.com/v1alpha1
         kind: InstallPlan
-        name: "{{ install_plan_name }}"
+        name: "{{ __sap_hypervisor_node_preconfigure_register_cnv_subscription_install_plan_name.resources[0].status.installPlanRef.name }}"
         namespace: "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
       register: __sap_hypervisor_node_preconfigure_register_wait_for_installplan
-      until: __sap_hypervisor_node_preconfigure_register_wait_for_installplan.resources[0].status.phase == "Complete"
       retries: 60
       delay: 5
+      until: __sap_hypervisor_node_preconfigure_register_wait_for_installplan.resources[0].status.phase == "Complete"
       ignore_errors: true
 
-    - name: Fail if Install Plan is not Complete after waiting
+    - name: Redhat OCP Virt - Fail if Install Plan is not Complete after waiting
       ansible.builtin.fail:
-        msg: "Install Plan is not Complete after the specified wait period."
+        msg: |
+          FAIL: Install Plan is not Complete after the specified wait period.
       when: __sap_hypervisor_node_preconfigure_register_wait_for_installplan.resources[0].status.phase != "Complete"
 
-- name: Wait and check for pod with label name hyperconverged-cluster-webhook under the namespace "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
+- name: Redhat OCP Virt - Wait for pod with name hyperconverged-cluster-webhook under the namespace {{ sap_hypervisor_node_preconfigure_ocpv_namespace }}
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
     label_selectors:
       - name=hyperconverged-cluster-webhook
-  register: hco_webhook_pod
+  register: __sap_hypervisor_node_preconfigure_register_hco_webhook_pod_1
   retries: 5
   delay: 60
-  until: hco_webhook_pod.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == hco_webhook_pod.resources | length
+  until: __sap_hypervisor_node_preconfigure_register_hco_webhook_pod_1.resources | selectattr('status.phase', 'equalto', 'Running') | list | length
+    == __sap_hypervisor_node_preconfigure_register_hco_webhook_pod_1.resources | length
 
-- name: Wait and check for pod with name hco-webhook under the namespace "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
+- name: Redhat OCP Virt - Wait for pod with name hco-webhook under the namespace "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
     label_selectors:
       - name=hco-webhook
-  register: __sap_hypervisor_node_preconfigure_register_hco_webhook_pod
+  register: __sap_hypervisor_node_preconfigure_register_hco_webhook_pod_2
   retries: 5
   delay: 60
-  until: __sap_hypervisor_node_preconfigure_register_hco_webhook_pod.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == __sap_hypervisor_node_preconfigure_register_hco_webhook_pod.resources | length
+  until: __sap_hypervisor_node_preconfigure_register_hco_webhook_pod_2.resources | selectattr('status.phase', 'equalto', 'Running') | list | length
+    == __sap_hypervisor_node_preconfigure_register_hco_webhook_pod_2.resources | length
 
-- name: Check if hco-webhook-service webhook endpoint is available
-  ansible.builtin.include_tasks: wait_for_webhook_endpoints.yml
+- name: Redhat OCP Virt - Check if hco-webhook-service webhook endpoint is available
+  ansible.builtin.include_tasks:
+    file: wait_for_webhook_endpoints.yml
   vars:
     sap_hypervisor_node_preconfigure_webhook_service_name: hco-webhook-service
     sap_hypervisor_node_preconfigure_webhook_namespace: "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
 
-- name: Create CNV HyperConverged
+- name: Redhat OCP Virt - Create CNV HyperConverged
   kubernetes.core.k8s:
     state: present
     definition:
@@ -111,7 +112,7 @@
         name: kubevirt-hyperconverged
         namespace: "{{ sap_hypervisor_node_preconfigure_ocpv_namespace }}"
 
-- name: Retrieve HyperConverged Status
+- name: Redhat OCP Virt - Retrieve HyperConverged Status
   kubernetes.core.k8s_info:
     api_version: hco.kubevirt.io/v1beta1
     kind: HyperConverged
@@ -122,9 +123,10 @@
       type: Available
       status: true
     wait_timeout: 600
-  register: hyperconverged_status
+  register: __sap_hypervisor_node_preconfigure_register_hyperconverged_status
 
-- name: Fail if HyperConverged is not Available
+- name: Redhat OCP Virt - Fail if HyperConverged is not Available
   ansible.builtin.fail:
-    msg: "HyperConverged is not Available after the specified wait period."
-  when: hyperconverged_status.failed
+    msg: |
+      FAIL: HyperConverged is not Available after the specified wait period.
+  when: __sap_hypervisor_node_preconfigure_register_hyperconverged_status.failed

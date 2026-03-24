@@ -1,8 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Include node network
-  ansible.builtin.include_tasks: node-network.yml
-  loop: "{{ __sap_hypervisor_node_preconfigure_register_worker.networks }}"
+
+- name: Redhat OCP Virt - Include node network
+  ansible.builtin.include_tasks:
+    file: node-network.yml
+  loop: "{{ __sap_hypervisor_node_preconfigure_worker_item.networks }}"
   loop_control:
-    loop_var: __sap_hypervisor_node_preconfigure_register_worker_network
-    index_var: __sap_hypervisor_node_preconfigure_register_worker_network_nr
-  when: __sap_hypervisor_node_preconfigure_register_worker.networks is defined
+    loop_var: __sap_hypervisor_node_preconfigure_worker_network_item
+  when: __sap_hypervisor_node_preconfigure_worker_item.networks is defined

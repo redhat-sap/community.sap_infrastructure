@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Create the SR-IOV Operator namespace
+
+- name: Redhat OCP Virt - Create the SR-IOV Operator namespace
   kubernetes.core.k8s:
     state: present
     definition:
@@ -8,7 +10,7 @@
       metadata:
         name: openshift-sriov-network-operator
 
-- name: Create the SR-IOV Operator namespace
+- name: Redhat OCP Virt - Create the SR-IOV Operator namespace
   kubernetes.core.k8s:
     state: present
     definition:
@@ -21,7 +23,7 @@
         targetNamespaces:
           - openshift-sriov-network-operator
 
-- name: Create the SR-IOV Operator namespace
+- name: Redhat OCP Virt - Create the SR-IOV Operator namespace
   kubernetes.core.k8s:
     state: present
     definition:
@@ -36,50 +38,52 @@
         name: sriov-network-operator
         channel: "stable"
 
-- name: Wait for Subscription to have an InstallPlan
+- name: Redhat OCP Virt - Wait for Subscription to have an InstallPlan
   kubernetes.core.k8s_info:
     api_version: operators.coreos.com/v1alpha1
     kind: Subscription
     name: sriov-network-operator-subscription
     namespace: openshift-sriov-network-operator
-  register: subscription_status
+  register: __sap_hypervisor_node_preconfigure_register_subscription_status
   retries: 30
   delay: 10
-  until: subscription_status.resources[0].status.installplan.name is defined
+  until: __sap_hypervisor_node_preconfigure_register_subscription_status.resources[0].status.installplan.name is defined
 
-- name: Wait for InstallPlan to complete for SR-IOV  # noqa: ignore-errors
+# Reason for noqa: Ignore errors during retry loop and fail in subsequent task.
+- name: Redhat OCP Virt - Wait for InstallPlan to complete for SR-IOV  # noqa: ignore-errors
   kubernetes.core.k8s_info:
     api_version: operators.coreos.com/v1alpha1
     kind: InstallPlan
-    name: "{{ subscription_status.resources[0].status.installplan.name }}"
+    name: "{{ __sap_hypervisor_node_preconfigure_register_subscription_status.resources[0].status.installplan.name }}"
     namespace: openshift-sriov-network-operator
-  register: installplan_status
+  register: __sap_hypervisor_node_preconfigure_register_installplan_status
   retries: 30
   delay: 10
   ignore_errors: true
-  until: installplan_status.resources[0].status.phase == "Complete"
+  until: __sap_hypervisor_node_preconfigure_register_installplan_status.resources[0].status.phase == "Complete"
 
-- name: Verify SR-IOV Operator is running
+- name: Redhat OCP Virt - Verify SR-IOV Operator is running
   kubernetes.core.k8s_info:
     api_version: operators.coreos.com/v1
     kind: OperatorGroup
     name: sriov-network-operators
     namespace: openshift-sriov-network-operator
-  register: operatorgroup_status
+  register: __sap_hypervisor_node_preconfigure_register_operatorgroup_status
   retries: 30
   delay: 10
-  until: operatorgroup_status.resources | default([]) | length > 0
+  until: __sap_hypervisor_node_preconfigure_register_operatorgroup_status.resources | d([]) | length > 0
 
-- name: Check if SriovOperatorConfig exists  # noqa: ignore-errors
+# Reason for noqa: Ignore errors during retry loop and fail in subsequent task.
+- name: Redhat OCP Virt - Check if SriovOperatorConfig exists  # noqa: ignore-errors
   kubernetes.core.k8s_info:
     api_version: sriovnetwork.openshift.io/v1
     kind: SriovOperatorConfig
     name: default
     namespace: openshift-sriov-network-operator
-  register: sriov_operator_config_status
+  register: __sap_hypervisor_node_preconfigure_register_sriov_operator_config_status
   ignore_errors: true
 
-- name: Enable unsupported NICs for SR-IOV usage if the resource exists
+- name: Redhat OCP Virt - Enable unsupported NICs for SR-IOV usage if the resource exists
   kubernetes.core.k8s:
     state: patched
     definition:
@@ -90,9 +94,9 @@
         namespace: openshift-sriov-network-operator
       spec:
         enableOperatorWebhook: false
-  when: sriov_operator_config_status.resources is defined and sriov_operator_config_status.resources | length > 0
+  when: __sap_hypervisor_node_preconfigure_register_sriov_operator_config_status.resources | d([]) | length > 0
 
-- name: Create SriovOperatorConfig if it does not exist
+- name: Redhat OCP Virt - Create SriovOperatorConfig if it does not exist
   kubernetes.core.k8s:
     state: present
     definition:
@@ -107,13 +111,13 @@
         enableOperatorWebhook: false
         logLevel: 2
 
-- name: Wait for SriovOperatorConfig to exist
+- name: Redhat OCP Virt - Wait for SriovOperatorConfig to exist
   kubernetes.core.k8s_info:
     api_version: sriovnetwork.openshift.io/v1
     kind: SriovOperatorConfig
     name: default
     namespace: openshift-sriov-network-operator
-  register: sriov_operator_config_status
+  register: __sap_hypervisor_node_preconfigure_register_sriov_operator_config_status
   retries: 10
   delay: 10
-  until: sriov_operator_config_status.resources | length > 0
+  until: __sap_hypervisor_node_preconfigure_register_sriov_operator_config_status.resources | d([]) | length > 0

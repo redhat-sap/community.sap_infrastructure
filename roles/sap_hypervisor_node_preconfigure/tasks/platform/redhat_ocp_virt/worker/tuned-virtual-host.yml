@@ -1,5 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
 ---
-- name: Set virtual-host for worker nodes
+
+- name: Redhat OCP Virt - Set virtual-host for worker nodes
   kubernetes.core.k8s:
     state: present
     definition:
